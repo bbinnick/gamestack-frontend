@@ -1,12 +1,11 @@
 import './App.css';
-import SearchAppBar from './components/SearchAppBar';
-import User from './components/User';
+import Register from './pages/SignUp/Register';
 
 function App() {
   return (
     <div className="App">
-      <SearchAppBar/>
-      <User/>
+      {/* <SearchAppBar/> */}
+      <Register/>
     </div>
   );
 }
