@@ -16,21 +16,21 @@ const styles = {
 };
 
 export default function User() {
-    const [firstName, setFirstName] = useState('John');
-    const [lastName, setLastName] = useState('Doe');
+    const [username, setUsername] = useState('Gabaghoul');
     const [email, setEmail] = useState('test@user.com');
     const [password, setPassword] = useState('password');
     const theme = useTheme();
 
     const handleClick = async (e) => {
         e.preventDefault();
-        const user = { firstName, lastName, email, password };
+        const user = { username, email, password };
         console.log(user);
 
         const authUsername = 'your-username';
         const authPassword = 'your-password';
         const credentials = btoa(`${authUsername}:${authPassword}`);
 
+        //consider using axios instead of fetch
         fetch('http://localhost:8080/users/register', {
             method: 'POST',
             headers: {
@@ -60,11 +60,8 @@ export default function User() {
             <Container>
                 <Paper elevation={3} style={styles.paper}>
                     <h2 style={styles.h2}>Sign In</h2>
-                    <TextField fullWidth focused label="First Name" color="primary" variant="outlined"
-                        value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                    />
-                    <TextField fullWidth focused label="Last Name" color="primary" variant="outlined"
-                        value={lastName} onChange={(e) => setLastName(e.target.value)}
+                    <TextField fullWidth focused label="Username" color="primary" variant="outlined"
+                        value={username} onChange={(e) => setUsername(e.target.value)}
                     />
                     <TextField fullWidth focused label="E-mail" color="secondary" variant="outlined"
                         value={email} onChange={(e) => setEmail(e.target.value)}
