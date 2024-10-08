@@ -16,21 +16,21 @@ const styles = {
 };
 
 export default function User() {
-    const [first_name, setFirstName] = useState('John');
-    const [last_name, setLastName] = useState('Doe');
+    const [firstName, setFirstName] = useState('John');
+    const [lastName, setLastName] = useState('Doe');
     const [email, setEmail] = useState('test@user.com');
     const [password, setPassword] = useState('password');
     const theme = useTheme();
 
-    const handleClick = (e) => {
+    const handleClick = async (e) => {
         e.preventDefault();
-        const user = { first_name, last_name, email, password };
+        const user = { firstName, lastName, email, password };
         console.log(user);
 
         const authUsername = 'your-username';
         const authPassword = 'your-password';
         const credentials = btoa(`${authUsername}:${authPassword}`);
-        console.log(credentials);
+
         fetch('http://localhost:8080/users/register', {
             method: 'POST',
             headers: {
@@ -50,31 +50,6 @@ export default function User() {
         });
     }
 
-    /*
-    const handleClick = (e) => {
-        e.preventDefault();
-        const user = { first_name, last_name, email, password };
-        console.log(user);
-
-        const authUsername = 'JohnDoe';
-        const authPassword = 'password';
-        const credentials = btoa(`${authUsername}:${authPassword}`);
-
-        axios.post('http://localhost:8080/users/register', user, {
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Basic ${credentials}`
-            }
-        })
-            .then(response => {
-                console.log('New user added:', response.data);
-            })
-            .catch(error => {
-                console.error('There was a problem with the axios operation:', error);
-            });
-    }
-    */
-
     return (
         <Box
             component="form"
@@ -86,10 +61,10 @@ export default function User() {
                 <Paper elevation={3} style={styles.paper}>
                     <h2 style={styles.h2}>Sign In</h2>
                     <TextField fullWidth focused label="First Name" color="primary" variant="outlined"
-                        value={first_name} onChange={(e) => setFirstName(e.target.value)}
+                        value={firstName} onChange={(e) => setFirstName(e.target.value)}
                     />
                     <TextField fullWidth focused label="Last Name" color="primary" variant="outlined"
-                        value={last_name} onChange={(e) => setLastName(e.target.value)}
+                        value={lastName} onChange={(e) => setLastName(e.target.value)}
                     />
                     <TextField fullWidth focused label="E-mail" color="secondary" variant="outlined"
                         value={email} onChange={(e) => setEmail(e.target.value)}
