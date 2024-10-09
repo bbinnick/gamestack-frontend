@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -13,6 +14,7 @@ import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import ForgotPassword from './ForgotPassword';
 import TemplateFrame from '../components/TemplateFrame';
 
@@ -35,30 +37,25 @@ const Card = styled(MuiCard)(({ theme }) => ({
   }),
 }));
 
-const SignInContainer = styled(Stack)(({ theme }) => ({
+const LogInContainer = styled(Stack)(({ theme }) => ({
   minHeight: '100%',
   padding: theme.spacing(2),
   [theme.breakpoints.up('sm')]: {
     padding: theme.spacing(4),
   },
-  '&::before': {
-    content: '""',
-    display: 'block',
-    position: 'absolute',
-    zIndex: -1,
-    inset: 0,
+  backgroundImage:
+    'radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))',
+  backgroundRepeat: 'no-repeat',
+  ...theme.applyStyles('dark', {
     backgroundImage:
-      'radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))',
-    backgroundRepeat: 'no-repeat',
-    ...theme.applyStyles('dark', {
-      backgroundImage:
-        'radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))',
-    }),
-  },
+      'radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))',
+  }),
 }));
 
-export default function SignIn(props) {
+export default function LogIn() {
   const [mode, setMode] = React.useState('light');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
   const [passwordError, setPasswordError] = React.useState(false);
@@ -67,7 +64,6 @@ export default function SignIn(props) {
 
   const navigate = useNavigate();
 
-  // This code only runs on the client side, to determine the system color preference
   React.useEffect(() => {
     // Check if there is a preferred mode in localStorage
     const savedMode = localStorage.getItem('themeMode');
@@ -96,25 +92,10 @@ export default function SignIn(props) {
     setOpen(false);
   };
 
-  const handleSubmit = (event) => {
-    if (emailError || passwordError) {
-      event.preventDefault();
-      return;
-    }
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-  };
-
   const validateInputs = () => {
-    const email = document.getElementById('email');
-    const password = document.getElementById('password');
-
     let isValid = true;
 
-    if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
       setEmailError(true);
       setEmailErrorMessage('Please enter a valid email address.');
       isValid = false;
@@ -123,7 +104,7 @@ export default function SignIn(props) {
       setEmailErrorMessage('');
     }
 
-    if (!password.value || password.value.length < 6) {
+    if (!password || password.length < 6) {
       setPasswordError(true);
       setPasswordErrorMessage('Password must be at least 6 characters long.');
       isValid = false;
@@ -135,13 +116,36 @@ export default function SignIn(props) {
     return isValid;
   };
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!validateInputs()) {
+      return;
+    }
+
+    const user = {
+      email,
+      password,
+    };
+
+    try {
+      const response = await axios.post('http://localhost:8080/users/login', user);
+      console.log('User logged in successfully:', response.data);
+      // Store the session information (e.g., JWT token) in local storage
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user)); // Assuming response.data.user contains user info
+      navigate('/');
+    } catch (error) {
+      console.error('There was an error logging in the user:', error);
+    }
+  };
+
   return (
     <TemplateFrame
       mode={mode}
       toggleColorMode={toggleColorMode}
     >
       <CssBaseline enableColorScheme />
-      <SignInContainer direction="column" justifyContent="space-between">
+      <LogInContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
           <Typography
             component="h1"
@@ -153,30 +157,30 @@ export default function SignIn(props) {
           <Box
             component="form"
             onSubmit={handleSubmit}
-            noValidate
+            //noValidate
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              width: '100%',
+              //width: '100%',
               gap: 2,
             }}
           >
             <FormControl>
               <FormLabel htmlFor="email">Email</FormLabel>
               <TextField
-                error={emailError}
-                helperText={emailErrorMessage}
-                id="email"
-                type="email"
-                name="email"
-                placeholder="your@email.com"
-                autoComplete="email"
-                autoFocus
                 required
                 fullWidth
+                autoFocus
+                id="email"
+                placeholder="your@email.com"
+                name="email"
+                autoComplete="email"
                 variant="outlined"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                error={emailError}
+                helperText={emailErrorMessage}
                 color={emailError ? 'error' : 'primary'}
-                sx={{ ariaLabel: 'email' }}
               />
             </FormControl>
             <FormControl>
@@ -193,17 +197,18 @@ export default function SignIn(props) {
                 </Link>
               </Box>
               <TextField
-                error={passwordError}
-                helperText={passwordErrorMessage}
+                required
+                fullWidth
                 name="password"
                 placeholder="••••••"
                 type="password"
                 id="password"
                 autoComplete="current-password"
-                autoFocus
-                required
-                fullWidth
                 variant="outlined"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={passwordError}
+                helperText={passwordErrorMessage}
                 color={passwordError ? 'error' : 'primary'}
               />
             </FormControl>
@@ -235,7 +240,7 @@ export default function SignIn(props) {
             </Typography>
           </Box>
         </Card>
-      </SignInContainer>
+      </LogInContainer>
     </TemplateFrame>
   );
 }

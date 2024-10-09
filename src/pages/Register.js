@@ -11,6 +11,7 @@ import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import getSignUpTheme from '../theme/getSignUpTheme.js';
 import TemplateFrame from '../components/TemplateFrame.js';
 
@@ -118,18 +119,25 @@ export default function SignUp() {
     return isValid;
   };
 
-  const handleSubmit = (event) => {
-    if (nameError || emailError || passwordError) {
-      event.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!validateInputs()) {
       return;
     }
     const data = new FormData(event.currentTarget);
-    console.log({
-      name: data.get('name'),
-      lastName: data.get('lastName'),
+    const user = {
+      username: data.get('name'),
       email: data.get('email'),
       password: data.get('password'),
-    });
+    };
+
+    try {
+      const response = await axios.post('http://localhost:8080/users/register', user);
+      console.log('User registered successfully:', response.data);
+      navigate('/');
+    } catch (error) {
+      console.error('There was an error registering the user:', error);
+    }
   };
 
   return (
