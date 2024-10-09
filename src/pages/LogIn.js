@@ -12,8 +12,9 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 import ForgotPassword from './ForgotPassword';
-import TemplateFrame from '../../components/TemplateFrame';
+import TemplateFrame from '../components/TemplateFrame';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -58,21 +59,33 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
 
 export default function SignIn(props) {
   const [mode, setMode] = React.useState('light');
-  const [showCustomTheme, setShowCustomTheme] = React.useState(true);
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [open, setOpen] = React.useState(false);
 
+  const navigate = useNavigate();
+
+  // This code only runs on the client side, to determine the system color preference
+  React.useEffect(() => {
+    // Check if there is a preferred mode in localStorage
+    const savedMode = localStorage.getItem('themeMode');
+    if (savedMode) {
+      setMode(savedMode);
+    } else {
+      // If no preference is found, it uses system preference
+      const systemPrefersDark = window.matchMedia(
+        '(prefers-color-scheme: dark)',
+      ).matches;
+      setMode(systemPrefersDark ? 'dark' : 'light');
+    }
+  }, []);
+
   const toggleColorMode = () => {
     const newMode = mode === 'dark' ? 'light' : 'dark';
     setMode(newMode);
     localStorage.setItem('themeMode', newMode); // Save the selected mode to localStorage
-  };
-
-  const toggleCustomTheme = () => {
-    setShowCustomTheme((prev) => !prev);
   };
 
   const handleClickOpen = () => {
@@ -124,8 +137,6 @@ export default function SignIn(props) {
 
   return (
     <TemplateFrame
-      toggleCustomTheme={toggleCustomTheme}
-      showCustomTheme={showCustomTheme}
       mode={mode}
       toggleColorMode={toggleColorMode}
     >
@@ -213,11 +224,12 @@ export default function SignIn(props) {
               Don&apos;t have an account?{' '}
               <span>
                 <Link
-                  href="/material-ui/getting-started/templates/sign-in/"
+                  component="button"
                   variant="body2"
                   sx={{ alignSelf: 'center' }}
+                  onClick={() => navigate('/sign-up')}
                 >
-                  Sign up
+                  Sign Up
                 </Link>
               </span>
             </Typography>

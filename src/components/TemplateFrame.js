@@ -1,9 +1,6 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
@@ -11,7 +8,7 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { useNavigate } from 'react-router-dom';
-import ToggleColorMode from '../pages/SignUp/ToggleColorMode.js';
+import ToggleColorMode from '../components/TemplateColorMode';
 import getSignUpTheme from '../theme/getSignUpTheme.js';
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
@@ -30,8 +27,6 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
 }));
 
 function TemplateFrame({
-  showCustomTheme,
-  toggleCustomTheme,
   mode,
   toggleColorMode,
   children,
@@ -39,9 +34,6 @@ function TemplateFrame({
   const navigate = useNavigate();
   const handleBackToHome = () => {
     navigate('/');
-  };
-  const handleChange = (event) => {
-    toggleCustomTheme(event.target.value === 'custom');
   };
   const signUpTheme = createTheme(getSignUpTheme(mode));
 
@@ -78,19 +70,6 @@ function TemplateFrame({
               <ArrowBackRoundedIcon />
             </IconButton>
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <FormControl variant="outlined" sx={{ minWidth: 180 }}>
-                <Select
-                  size="small"
-                  labelId="theme-select-label"
-                  id="theme-select"
-                  value={showCustomTheme ? 'custom' : 'material'}
-                  onChange={handleChange}
-                  label="Design Language"
-                >
-                  <MenuItem value="custom">Custom Theme</MenuItem>
-                  <MenuItem value="material">Material Design 2</MenuItem>
-                </Select>
-              </FormControl>
               <ToggleColorMode
                 data-screenshot="toggle-mode"
                 mode={mode}
@@ -108,9 +87,7 @@ function TemplateFrame({
 TemplateFrame.propTypes = {
   children: PropTypes.node,
   mode: PropTypes.oneOf(['dark', 'light']).isRequired,
-  showCustomTheme: PropTypes.bool.isRequired,
   toggleColorMode: PropTypes.func.isRequired,
-  toggleCustomTheme: PropTypes.func.isRequired,
 };
 
 export default TemplateFrame;

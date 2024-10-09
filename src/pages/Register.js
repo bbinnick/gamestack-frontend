@@ -10,8 +10,9 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
-import getSignUpTheme from '../../theme/getSignUpTheme.js';
-import TemplateFrame from '../../components/TemplateFrame.js';
+import { useNavigate } from 'react-router-dom';
+import getSignUpTheme from '../theme/getSignUpTheme.js';
+import TemplateFrame from '../components/TemplateFrame.js';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -49,8 +50,6 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 
 export default function SignUp() {
   const [mode, setMode] = React.useState('light');
-  const [showCustomTheme, setShowCustomTheme] = React.useState(true);
-  const defaultTheme = createTheme({ palette: { mode } });
   const SignUpTheme = createTheme(getSignUpTheme(mode));
   const [nameError, setNameError] = React.useState(false);
   const [nameErrorMessage, setNameErrorMessage] = React.useState('');
@@ -58,7 +57,9 @@ export default function SignUp() {
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
-  // This code only runs on the client side, to determine the system color preference
+
+  const navigate = useNavigate();
+
   React.useEffect(() => {
     // Check if there is a preferred mode in localStorage
     const savedMode = localStorage.getItem('themeMode');
@@ -79,9 +80,6 @@ export default function SignUp() {
     localStorage.setItem('themeMode', newMode); // Save the selected mode to localStorage
   };
 
-  const toggleCustomTheme = () => {
-    setShowCustomTheme((prev) => !prev);
-  };
 
   const validateInputs = () => {
     const email = document.getElementById('email');
@@ -136,12 +134,10 @@ export default function SignUp() {
 
   return (
     <TemplateFrame
-      toggleCustomTheme={toggleCustomTheme}
-      showCustomTheme={showCustomTheme}
       mode={mode}
       toggleColorMode={toggleColorMode}
     >
-      <ThemeProvider theme={showCustomTheme ? SignUpTheme : defaultTheme}>
+      <ThemeProvider theme={SignUpTheme}>
         <CssBaseline enableColorScheme />
         <SignUpContainer direction="column" justifyContent="space-between">
           <Card variant="outlined">
@@ -214,9 +210,10 @@ export default function SignUp() {
                 Already have an account?{' '}
                 <span>
                   <Link
-                    href="./pages/SignIn"
+                    component="button"
                     variant="body2"
                     sx={{ alignSelf: 'center' }}
+                    onClick={() => navigate('/log-in')}
                   >
                     Sign in
                   </Link>
