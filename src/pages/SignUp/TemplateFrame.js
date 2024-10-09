@@ -57,17 +57,17 @@ function TemplateFrame({
             <Button
               variant="text"
               size="small"
-              aria-label="Back to templates"
+              aria-label="Back to Dashboard"
               startIcon={<ArrowBackRoundedIcon />}
               component="a"
               href="/material-ui/getting-started/templates/"
               sx={{ display: { xs: 'none', sm: 'flex' } }}
             >
-              Back to templates
+              Back to Dashboard
             </Button>
             <IconButton
               size="small"
-              aria-label="Back to templates"
+              aria-label="Back to Dashboard"
               component="a"
               href="/material-ui/getting-started/templates/"
               sx={{ display: { xs: 'auto', sm: 'none' } }}

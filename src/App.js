@@ -1,12 +1,19 @@
-import './App.css';
-import Register from './pages/SignUp/Register';
+import React from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Home from './pages/Home';
+import SignUp from './pages/SignUp/Register';
+import SignIn from './pages/SignIn/LogIn';
 
 function App() {
   return (
-    <div className="App">
-      {/* <SearchAppBar/> */}
-      <Register/>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/log-in" element={<SignIn />} />
+        {/* Other routes */}
+      </Routes>
+    </BrowserRouter>
   );
 }
 
