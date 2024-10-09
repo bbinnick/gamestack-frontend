@@ -10,8 +10,9 @@ import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
-import ToggleColorMode from './ToggleColorMode';
-import getSignUpTheme from './theme/getSignUpTheme.js';
+import { useNavigate } from 'react-router-dom';
+import ToggleColorMode from '../pages/SignUp/ToggleColorMode.js';
+import getSignUpTheme from '../theme/getSignUpTheme.js';
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   position: 'relative',
@@ -35,6 +36,10 @@ function TemplateFrame({
   toggleColorMode,
   children,
 }) {
+  const navigate = useNavigate();
+  const handleBackToHome = () => {
+    navigate('/');
+  };
   const handleChange = (event) => {
     toggleCustomTheme(event.target.value === 'custom');
   };
@@ -59,8 +64,7 @@ function TemplateFrame({
               size="small"
               aria-label="Back to Dashboard"
               startIcon={<ArrowBackRoundedIcon />}
-              component="a"
-              href="/material-ui/getting-started/templates/"
+              onClick={handleBackToHome}
               sx={{ display: { xs: 'none', sm: 'flex' } }}
             >
               Back to Dashboard
@@ -68,8 +72,7 @@ function TemplateFrame({
             <IconButton
               size="small"
               aria-label="Back to Dashboard"
-              component="a"
-              href="/material-ui/getting-started/templates/"
+              onClick={handleBackToHome}
               sx={{ display: { xs: 'auto', sm: 'none' } }}
             >
               <ArrowBackRoundedIcon />

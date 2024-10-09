@@ -11,7 +11,7 @@ const Home = () => {
                 <h1>Welcome to My Site</h1>
                 <p>This is the home landing page.</p>
                 <Button onClick={() => navigate('/sign-up')}>Register</Button>
-                <Button onClick={() => navigate('/login')}>Log In</Button>
+                <Button onClick={() => navigate('/log-in')}>Log In</Button>
             </div>
         </div>
     );

@@ -10,8 +10,8 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
-import getSignUpTheme from './theme/getSignUpTheme.js';
-import TemplateFrame from './TemplateFrame';
+import getSignUpTheme from '../../theme/getSignUpTheme.js';
+import TemplateFrame from '../../components/TemplateFrame.js';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
