@@ -131,8 +131,7 @@ export default function LogIn() {
       const response = await axios.post('http://localhost:8080/users/login', user);
       console.log('User logged in successfully:', response.data);
       // Store the session information (e.g., JWT token) in local storage
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user)); // Assuming response.data.user contains user info
+      localStorage.setItem('user', JSON.stringify(response.data));
       navigate('/');
     } catch (error) {
       console.error('There was an error logging in the user:', error);

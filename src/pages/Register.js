@@ -134,6 +134,7 @@ export default function SignUp() {
     try {
       const response = await axios.post('http://localhost:8080/users/register', user);
       console.log('User registered successfully:', response.data);
+      localStorage.setItem('user', JSON.stringify(response.data));
       navigate('/');
     } catch (error) {
       console.error('There was an error registering the user:', error);

@@ -13,6 +13,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { useNavigate } from 'react-router-dom';
 
+//REMOVE THIS FILE, MIGRATE TO TEMPLATEFRAME.JS
+
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
@@ -27,7 +29,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     padding: '8px 12px',
 }));
 
-export default function AppAppBar() {
+export default function AppAppBar({ user, handleLogout }) {
     const [open, setOpen] = React.useState(false);
     const navigate = useNavigate();
 
@@ -62,12 +64,20 @@ export default function AppAppBar() {
                             alignItems: 'center',
                         }}
                     >
-                        <Button color="primary" variant="text" size="small" onClick={() => navigate('/log-in')}>
-                            Sign in
-                        </Button>
-                        <Button color="primary" variant="contained" size="small" onClick={() => navigate('/sign-up')}>
-                            Sign up
-                        </Button>
+                        {user ? (
+                            <Button color="primary" variant="contained" size="small" onClick={handleLogout}>
+                                Log out
+                            </Button>
+                        ) : (
+                            <>
+                                <Button color="primary" variant="text" size="small" onClick={() => navigate('/log-in')}>
+                                    Sign in
+                                </Button>
+                                <Button color="primary" variant="contained" size="small" onClick={() => navigate('/sign-up')}>
+                                    Sign up
+                                </Button>
+                            </>
+                        )}
                     </Box>
                     <Box sx={{ display: { sm: 'flex', md: 'none' } }}>
                         <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
@@ -88,21 +98,28 @@ export default function AppAppBar() {
                                 </Box>
                                 <Divider sx={{ my: 3 }} />
                                 <MenuItem>Features</MenuItem>
-                                <MenuItem>Testimonials</MenuItem>
                                 <MenuItem>Highlights</MenuItem>
-                                <MenuItem>Pricing</MenuItem>
-                                <MenuItem>FAQ</MenuItem>
                                 <MenuItem>Blog</MenuItem>
-                                <MenuItem>
-                                    <Button color="primary" variant="contained" fullWidth onClick={() => navigate('/sign-up')}>
-                                        Sign up
-                                    </Button>
-                                </MenuItem>
-                                <MenuItem>
-                                    <Button color="primary" variant="outlined" fullWidth onClick={() => navigate('/log-in')}>
-                                        Sign in
-                                    </Button>
-                                </MenuItem>
+                                {user ? (
+                                    <MenuItem>
+                                        <Button color="primary" variant="contained" fullWidth onClick={handleLogout}>
+                                            Log out
+                                        </Button>
+                                    </MenuItem>
+                                ) : (
+                                    <>
+                                        <MenuItem>
+                                            <Button color="primary" variant="contained" fullWidth onClick={() => navigate('/sign-up')}>
+                                                Sign up
+                                            </Button>
+                                        </MenuItem>
+                                        <MenuItem>
+                                            <Button color="primary" variant="outlined" fullWidth onClick={() => navigate('/log-in')}>
+                                                Sign in
+                                            </Button>
+                                        </MenuItem>
+                                    </>
+                                )}
                             </Box>
                         </Drawer>
                     </Box>

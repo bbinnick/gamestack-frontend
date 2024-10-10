@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -7,25 +7,33 @@ import MainContent from '../components/MainContent';
 import Latest from '../components/Latest';
 import Footer from '../components/Footer';
 import TemplateFrame from '../components/TemplateFrame';
-import { useState, useEffect } from 'react';
-
 import getBlogTheme from '../theme/getBlogTheme';
+import { useNavigate } from 'react-router-dom';
 
 export default function Blog() {
     const [mode, setMode] = React.useState('light');
     const blogTheme = createTheme(getBlogTheme(mode));
     const [user, setUser] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             try {
-                setUser(JSON.parse(storedUser));
+                const parsedUser = JSON.parse(storedUser);
+                setUser(parsedUser ? parsedUser : null);
             } catch (error) {
                 console.error('Error parsing stored user:', error);
+                localStorage.removeItem('user');
             }
         }
     }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        setUser(null);
+        navigate('/log-in');
+    };
 
     React.useEffect(() => {
         // Check if there is a preferred mode in localStorage
@@ -51,20 +59,17 @@ export default function Blog() {
         <TemplateFrame
             mode={mode}
             toggleColorMode={toggleColorMode}
+            user={user}
+        //handleLogout={handleLogout}
         >
             <ThemeProvider theme={blogTheme}>
                 <CssBaseline enableColorScheme />
-                <AppAppBar />
+                <AppAppBar user={user} handleLogout={handleLogout} />
                 <Container
                     maxWidth="lg"
                     component="main"
                     sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}
                 >
-                    {user ? (
-                        <p>Logged in as: {user.username}</p>
-                    ) : (
-                        <p>No user logged in</p>
-                    )}
                     <MainContent />
                     <Latest />
                 </Container>
