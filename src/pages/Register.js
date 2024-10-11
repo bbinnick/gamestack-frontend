@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
+import { MenuItem, Select } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import getSignUpTheme from '../theme/getSignUpTheme.js';
@@ -50,18 +51,19 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function SignUp() {
-  const [mode, setMode] = React.useState('light');
+  const [mode, setMode] = useState('light');
   const SignUpTheme = createTheme(getSignUpTheme(mode));
-  const [nameError, setNameError] = React.useState(false);
-  const [nameErrorMessage, setNameErrorMessage] = React.useState('');
-  const [emailError, setEmailError] = React.useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
-  const [passwordError, setPasswordError] = React.useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
+  const [nameError, setNameError] = useState(false);
+  const [nameErrorMessage, setNameErrorMessage] = useState('');
+  const [emailError, setEmailError] = useState(false);
+  const [emailErrorMessage, setEmailErrorMessage] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
+  const [role, setRole] = useState('ROLE_USER');
 
   const navigate = useNavigate();
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Check if there is a preferred mode in localStorage
     const savedMode = localStorage.getItem('themeMode');
     if (savedMode) {
@@ -129,6 +131,7 @@ export default function SignUp() {
       username: data.get('name'),
       email: data.get('email'),
       password: data.get('password'),
+      role: role,
     };
 
     try {
@@ -206,6 +209,18 @@ export default function SignUp() {
                   helperText={passwordErrorMessage}
                   color={passwordError ? 'error' : 'primary'}
                 />
+              </FormControl>
+              <FormControl>
+                <FormLabel htmlFor="role">Role</FormLabel>
+                <Select
+                  id="role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  fullWidth
+                >
+                  <MenuItem value="ROLE_USER">User</MenuItem>
+                  <MenuItem value="ROLE_ADMIN">Admin</MenuItem>
+                </Select>
               </FormControl>
               <Button
                 type="submit"

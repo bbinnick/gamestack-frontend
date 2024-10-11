@@ -7,7 +7,7 @@ import {
   surfacesCustomizations,
 } from './customizations';
 
-export default function getBlogTheme(mode) {
+export default function getDashboardTheme(mode) {
   return {
     ...getDesignTokens(mode),
     components: {

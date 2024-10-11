@@ -7,12 +7,12 @@ import MainContent from '../components/MainContent';
 import Latest from '../components/Latest';
 import Footer from '../components/Footer';
 import TemplateFrame from '../components/TemplateFrame';
-import getBlogTheme from '../theme/getBlogTheme';
+import getDashboardTheme from '../theme/getDashboardTheme';
 import { useNavigate } from 'react-router-dom';
 
-export default function Blog() {
-    const [mode, setMode] = React.useState('light');
-    const blogTheme = createTheme(getBlogTheme(mode));
+export default function Dashboard() {
+    const [mode, setMode] = useState('light');
+    const DashboardTheme = createTheme(getDashboardTheme(mode));
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
@@ -35,7 +35,7 @@ export default function Blog() {
         navigate('/log-in');
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         // Check if there is a preferred mode in localStorage
         const savedMode = localStorage.getItem('themeMode');
         if (savedMode) {
@@ -62,7 +62,7 @@ export default function Blog() {
             user={user}
         //handleLogout={handleLogout}
         >
-            <ThemeProvider theme={blogTheme}>
+            <ThemeProvider theme={DashboardTheme}>
                 <CssBaseline enableColorScheme />
                 <AppAppBar user={user} handleLogout={handleLogout} />
                 <Container
