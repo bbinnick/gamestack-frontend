@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import CssBaseline from '@mui/material/CssBaseline';
-import Container from '@mui/material/Container';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { createTheme, ThemeProvider, CssBaseline, Container } from '@mui/material';
 import AppAppBar from '../components/AppAppBar';
 import MainContent from '../components/MainContent';
 import Latest from '../components/Latest';
@@ -9,6 +7,7 @@ import Footer from '../components/Footer';
 import TemplateFrame from '../components/TemplateFrame';
 import getDashboardTheme from '../theme/getDashboardTheme';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 export default function Dashboard() {
     const [mode, setMode] = useState('light');
@@ -20,8 +19,9 @@ export default function Dashboard() {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             try {
-                const parsedUser = JSON.parse(storedUser);
-                setUser(parsedUser ? parsedUser : null);
+                const decodedUser = jwtDecode(storedUser);
+                console.log('Decoded token:', decodedUser);
+                setUser(decodedUser ? decodedUser : null);
             } catch (error) {
                 console.error('Error parsing stored user:', error);
                 localStorage.removeItem('user');
@@ -30,6 +30,7 @@ export default function Dashboard() {
     }, []);
 
     const handleLogout = () => {
+        console.log(`${user.username} logged out`);
         localStorage.removeItem('user');
         setUser(null);
         navigate('/log-in');

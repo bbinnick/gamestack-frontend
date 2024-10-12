@@ -59,7 +59,7 @@ export default function SignUp() {
   const [emailErrorMessage, setEmailErrorMessage] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
-  const [role, setRole] = useState('ROLE_USER');
+  const [role, setRole] = useState('USER');
 
   const navigate = useNavigate();
 
@@ -170,7 +170,6 @@ export default function SignUp() {
                 <TextField
                   autoComplete="name"
                   name="name"
-                  required
                   fullWidth
                   id="name"
                   placeholder="Jon Snow"
@@ -182,7 +181,6 @@ export default function SignUp() {
               <FormControl>
                 <FormLabel htmlFor="email">Email</FormLabel>
                 <TextField
-                  required
                   fullWidth
                   id="email"
                   placeholder="your@email.com"
@@ -197,7 +195,6 @@ export default function SignUp() {
               <FormControl>
                 <FormLabel htmlFor="password">Password</FormLabel>
                 <TextField
-                  required
                   fullWidth
                   name="password"
                   placeholder="••••••"
@@ -218,8 +215,8 @@ export default function SignUp() {
                   onChange={(e) => setRole(e.target.value)}
                   fullWidth
                 >
-                  <MenuItem value="ROLE_USER">User</MenuItem>
-                  <MenuItem value="ROLE_ADMIN">Admin</MenuItem>
+                  <MenuItem value="USER">User</MenuItem>
+                  <MenuItem value="ADMIN">Admin</MenuItem>
                 </Select>
               </FormControl>
               <Button
