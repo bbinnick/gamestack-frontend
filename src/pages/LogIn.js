@@ -166,7 +166,6 @@ export default function LogIn() {
             <FormControl>
               <FormLabel htmlFor="email">Email</FormLabel>
               <TextField
-                required
                 fullWidth
                 autoFocus
                 id="email"
@@ -195,7 +194,6 @@ export default function LogIn() {
                 </Link>
               </Box>
               <TextField
-                required
                 fullWidth
                 name="password"
                 placeholder="••••••"
