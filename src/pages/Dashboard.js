@@ -17,28 +17,27 @@ export default function Dashboard() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        const token = localStorage.getItem('token');
+        if (token) {
             try {
-                const decodedUser = jwtDecode(storedUser);
+                const decodedUser = jwtDecode(token);
                 console.log('Decoded token:', decodedUser);
                 setUser(decodedUser ? decodedUser : null);
             } catch (error) {
                 console.error('Error parsing stored user:', error);
-                localStorage.removeItem('user');
+                localStorage.removeItem('token');
             }
         }
     }, []);
 
     const handleLogout = () => {
         console.log(`${user.username} logged out`);
-        localStorage.removeItem('user');
+        localStorage.removeItem('token');
         setUser(null);
         navigate('/log-in');
     };
 
     useEffect(() => {
-        // Check if there is a preferred mode in localStorage
         const savedMode = localStorage.getItem('themeMode');
         if (savedMode) {
             setMode(savedMode);

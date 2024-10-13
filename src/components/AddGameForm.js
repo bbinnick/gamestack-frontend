@@ -13,9 +13,16 @@ const AddGameForm = () => {
         setGame({ ...game, [e.target.name]: e.target.value });
     };
 
+    //TODO: user is null here, need to connect user_id to game
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.post('http://localhost:8080/games/add', game)
+        const token = localStorage.getItem('token');
+
+        axios.post('http://localhost:8080/games/add', game, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(response => console.log('Game added:', response.data))
             .catch(error => console.error('Error adding game:', error));
     };
