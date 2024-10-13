@@ -1,6 +1,6 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { createTheme, ThemeProvider, styled, useTheme } from '@mui/material/styles';
+import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
@@ -37,8 +37,6 @@ function TemplateFrame({
     navigate('/');
   };
   const signUpTheme = createTheme(getSignUpTheme(mode));
-  const theme = useTheme();
-
 
   return (
     <ThemeProvider theme={signUpTheme}>
@@ -72,10 +70,19 @@ function TemplateFrame({
             >
               <ArrowBackRoundedIcon />
             </IconButton>
+            <Button
+              variant="text"
+              size="small"
+              aria-label="Add a Game"
+              onClick={() => navigate('/add-game')}
+              sx={{ display: { xs: 'none', sm: 'flex' } }}
+            >
+              Add a Game
+            </Button>
             {/* Currently does not adapt to dark/light mode */}
             {user && (
-              <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-                <p style={{ color: theme.palette.text.primary }}>Logged in as: {user.username}</p>
+              <Box variant="text" aria-label="username" sx={{ display: { xs: 'none', sm: 'flex' }}}>
+                Logged in as: {user.username}
               </Box>
             )}
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -89,7 +96,7 @@ function TemplateFrame({
         </StyledAppBar>
         <Box sx={{ flex: '1 1', overflow: 'auto' }}>{children}</Box>
       </Box>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
 
