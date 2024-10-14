@@ -136,12 +136,24 @@ export default function SignUp() {
 
     try {
       const response = await axios.post('http://localhost:8080/users/register', user);
-      const { jwt: token } = response.data;
-      localStorage.setItem('token', token); 
+      const { jwt: token } = response.data; // Extract the token from the jwt key
+      if (!token) {
+        throw new Error('Token not found in response');
+      }
       console.log('User registered successfully:', token);
+      localStorage.setItem('token', token); // Store the token in local storage
       navigate('/');
     } catch (error) {
-      console.error('There was an error registering the user:', error);
+      if (error.response) {
+        // Server responded with a status other than 200 range
+        console.error('Server responded with an error:', error.response.data);
+      } else if (error.request) {
+        // Request was made but no response was received
+        console.error('No response received:', error.request);
+      } else {
+        // Something happened in setting up the request
+        console.error('Error setting up request:', error.message);
+      }
     }
   };
 

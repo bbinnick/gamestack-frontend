@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 const AddGameForm = () => {
     const [game, setGame] = useState({
@@ -14,19 +15,37 @@ const AddGameForm = () => {
     };
 
     //TODO: user is null here, need to connect user_id to game
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
 
-        axios.post('http://localhost:8080/games/add', game, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-            .then(response => console.log('Game added:', response.data))
-            .catch(error => console.error('Error adding game:', error));
-    };
+        if (!token) {
+            console.error('No token found, please log in.');
+            return;
+        }
 
+        let userId;
+        try {
+            const decodedToken = jwtDecode(token);
+            console.log('Decoded token:', decodedToken);
+            userId = decodedToken.user_id; // Adjust this based on your token structure
+        } catch (error) {
+            console.error('Error decoding token:', error);
+            return;
+        }
+
+        const gameWithUser = { ...game, user_id: userId };
+        try {
+            const response = await axios.post('http://localhost:8080/games/add', gameWithUser, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+        } catch (error) {
+            console.error('Error adding game:', error);
+        }
+    };
     return (
         <form onSubmit={handleSubmit}>
             <input
