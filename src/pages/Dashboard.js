@@ -5,6 +5,7 @@ import MainContent from '../components/MainContent';
 import Latest from '../components/Latest';
 import Footer from '../components/Footer';
 import TemplateFrame from '../components/TemplateFrame';
+import AddGameForm from '../components/AddGameForm';
 import getDashboardTheme from '../theme/getDashboardTheme';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -16,28 +17,27 @@ export default function Dashboard() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        const token = localStorage.getItem('token');
+        if (token) {
             try {
-                const decodedUser = jwtDecode(storedUser);
+                const decodedUser = jwtDecode(token);
                 console.log('Decoded token:', decodedUser);
                 setUser(decodedUser ? decodedUser : null);
             } catch (error) {
                 console.error('Error parsing stored user:', error);
-                localStorage.removeItem('user');
+                localStorage.removeItem('token');
             }
         }
     }, []);
 
     const handleLogout = () => {
         console.log(`${user.username} logged out`);
-        localStorage.removeItem('user');
+        localStorage.removeItem('token');
         setUser(null);
         navigate('/log-in');
     };
 
     useEffect(() => {
-        // Check if there is a preferred mode in localStorage
         const savedMode = localStorage.getItem('themeMode');
         if (savedMode) {
             setMode(savedMode);
@@ -71,6 +71,10 @@ export default function Dashboard() {
                     component="main"
                     sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}
                 >
+                    <div>
+                        <h1>Your Dashboard</h1>
+                        <AddGameForm />
+                    </div>
                     <MainContent />
                     <Latest />
                 </Container>

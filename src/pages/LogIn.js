@@ -1,23 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import CssBaseline from '@mui/material/CssBaseline';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import Link from '@mui/material/Link';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import MuiCard from '@mui/material/Card';
+import { Box, Button, TextField, Typography, Stack, Card } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ForgotPassword from './ForgotPassword';
 import TemplateFrame from '../components/TemplateFrame';
 
-const Card = styled(MuiCard)(({ theme }) => ({
+const CardStyled = styled(Card)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignSelf: 'center',
@@ -121,16 +116,11 @@ export default function LogIn() {
       return;
     }
 
-    const user = {
-      email,
-      password,
-    };
-
     try {
-      const response = await axios.post('http://localhost:8080/users/login', user);
-      console.log('User logged in successfully:', response.data);
-      // Store the session information (e.g., JWT token) in local storage
-      localStorage.setItem('user', JSON.stringify(response.data));
+      const response = await axios.post('http://localhost:8080/users/login', { email, password });
+      const { jwt: token } = response.data;
+      localStorage.setItem('token', token);
+      console.log('User logged in successfully:', token);
       navigate('/');
     } catch (error) {
       console.error('There was an error logging in the user:', error);
@@ -144,7 +134,7 @@ export default function LogIn() {
     >
       <CssBaseline enableColorScheme />
       <LogInContainer direction="column" justifyContent="space-between">
-        <Card variant="outlined">
+        <CardStyled variant="outlined">
           <Typography
             component="h1"
             variant="h4"
@@ -166,7 +156,6 @@ export default function LogIn() {
             <FormControl>
               <FormLabel htmlFor="email">Email</FormLabel>
               <TextField
-                required
                 fullWidth
                 autoFocus
                 id="email"
@@ -195,7 +184,6 @@ export default function LogIn() {
                 </Link>
               </Box>
               <TextField
-                required
                 fullWidth
                 name="password"
                 placeholder="••••••"
@@ -237,7 +225,7 @@ export default function LogIn() {
               </span>
             </Typography>
           </Box>
-        </Card>
+        </CardStyled>
       </LogInContainer>
     </TemplateFrame>
   );
