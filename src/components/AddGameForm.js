@@ -14,7 +14,6 @@ const AddGameForm = () => {
         setGame({ ...game, [e.target.name]: e.target.value });
     };
 
-    //TODO: user is null here, need to connect user_id to game
     const handleSubmit = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
@@ -28,20 +27,20 @@ const AddGameForm = () => {
         try {
             const decodedToken = jwtDecode(token);
             console.log('Decoded token:', decodedToken);
-            userId = decodedToken.user_id; // Adjust this based on your token structure
+            userId = decodedToken.user_id;
         } catch (error) {
             console.error('Error decoding token:', error);
             return;
         }
 
-        const gameWithUser = { ...game, user_id: userId };
+        const gameWithUser = { ...game, userId };
         try {
             const response = await axios.post('http://localhost:8080/games/add', gameWithUser, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
-
+            console.log('Game added:', response.data);
         } catch (error) {
             console.error('Error adding game:', error);
         }
