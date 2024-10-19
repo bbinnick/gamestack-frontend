@@ -79,6 +79,15 @@ function TemplateFrame({
             >
               Add a Game
             </Button>
+            <Button
+              variant="text"
+              size="small"
+              aria-label="View Backlog"
+              onClick={() => navigate('/backlog')}
+              sx={{ display: { xs: 'none', sm: 'flex' } }}
+            >
+              Backlog
+            </Button>
             {/* Currently does not adapt to dark/light mode */}
             {user && (
               <Box variant="text" aria-label="username" sx={{ display: { xs: 'none', sm: 'flex' }}}>
