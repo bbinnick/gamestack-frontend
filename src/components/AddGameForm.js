@@ -76,6 +76,8 @@ const AddGameForm = () => {
                 <option value="Not Started">Not Started</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Completed">Completed</option>
+                <option value="Replay">Replay</option>
+                <option value="Wishlist">Wishlist</option>
             </select>
             <button type="submit">Add Game</button>
         </form>

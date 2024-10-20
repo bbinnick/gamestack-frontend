@@ -9,6 +9,9 @@ import {
     CardMedia,
     Tooltip,
     Switch,
+    Button,
+    Select,
+    MenuItem,
     Grid2,
 } from '@mui/material';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
@@ -22,6 +25,7 @@ const BacklogPage = () => {
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
     const [user, setUser] = useState(null);
 
+    // Fetch user's game backlog
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
@@ -46,6 +50,40 @@ const BacklogPage = () => {
         }
     }, []);
 
+    // Delete game from backlog
+    const handleDeleteGame = (gameId) => {
+        const token = localStorage.getItem('token');
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+
+        axios.delete(`http://localhost:8080/games/${gameId}`, config)
+            .then(() => {
+                console.log('Game deleted:', gameId);
+                setGames(prevGames => prevGames.filter(game => game.id !== gameId));
+            })
+            .catch(error => console.error('Error deleting game:', error));
+    };
+
+    // Update game status
+    const handleStatusChange = (gameId, newStatus) => {
+        const token = localStorage.getItem('token');
+        const config = {
+            params: { status: newStatus },
+            headers: { Authorization: `Bearer ${token}` }
+        };
+
+        // Find the game to get the old status
+        const game = games.find(game => game.id === gameId);
+        const oldStatus = game ? game.status : 'Unknown';
+
+        axios.patch(`http://localhost:8080/games/${gameId}/status`, { status: newStatus }, config)
+            .then(() => {
+                console.log(`Status updated for Game ID ${gameId} (${game.title}): ${oldStatus} -> ${newStatus}`);
+                setGames(prevGames => prevGames.map(game =>
+                    game.id === gameId ? { ...game, status: newStatus } : game
+                ));
+            })
+            .catch(error => console.error('Error updating status:', error));
+    };
     // Columns for DataGrid
     const columns = [
         {
@@ -69,15 +107,42 @@ const BacklogPage = () => {
         { field: 'title', headerName: 'Title', width: 200 },
         { field: 'genre', headerName: 'Genre', width: 150 },
         { field: 'platform', headerName: 'Platform', width: 150 },
-        { field: 'status', headerName: 'Status', width: 130 },
+        {
+            field: 'status',
+            headerName: 'Status',
+            width: 150,
+            renderCell: (params) => (
+                <Select
+                    value={params.row.status}
+                    onChange={(e) => handleStatusChange(params.row.id, e.target.value)}
+                >
+                    <MenuItem value="Not Started">Not Started</MenuItem>
+                    <MenuItem value="In Progress">In Progress</MenuItem>
+                    <MenuItem value="Completed">Completed</MenuItem>
+                    <MenuItem value="Replay">Replay</MenuItem>
+                    <MenuItem value="Wishlist">Wishlist</MenuItem>
+                </Select>
+            ),
+        },
         { field: 'addedOn', headerName: 'Added On', width: 150 },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 150,
+            renderCell: (params) => (
+                <Button
+                    color="error"
+                    onClick={() => handleDeleteGame(params.row.id)}
+                >
+                    Remove
+                </Button>
+            ),
+        },
     ];
 
-    // Toggle between table and card views
     const toggleViewMode = () => {
         setViewMode(viewMode === 'table' ? 'cards' : 'table');
     };
-
     const toggleColorMode = () => {
         const newMode = mode === 'dark' ? 'light' : 'dark';
         setMode(newMode);
@@ -106,14 +171,14 @@ const BacklogPage = () => {
                             rows={games}
                             columns={columns}
                             pageSize={5}
-                            rowsPerPageOptions={[5, 10]}
+                            rowsPerPageOptions={[5, 10, 25]}
                             getRowId={(row) => row.id}
                         />
                     </Box>
                 ) : (
                     <Grid2 container spacing={4} sx={{ mt: 4 }}>
                         {games.map((game) => (
-                            <Grid2 item key={game.id} xs={12} sm={6} md={4}>
+                            <Grid2 key={game.id} xs={12} sm={6} md={4}>
                                 <Card sx={{ maxWidth: 345 }}>
                                     {game.image ? (
                                         <CardMedia
@@ -136,6 +201,9 @@ const BacklogPage = () => {
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
                                             Platform: {game.platform}
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Status: {game.status}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
                                             Added On: {new Date(game.addedOn).toLocaleDateString()}
