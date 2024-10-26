@@ -18,9 +18,10 @@ import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import TemplateFrame from '../components/TemplateFrame';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import { useThemeContext } from '../components/ThemeContext';
 
 const BacklogPage = () => {
-    const [mode, setMode] = useState('light');
+    const { mode, toggleColorMode } = useThemeContext();
     const [games, setGames] = useState([]);
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
     const [user, setUser] = useState(null);
@@ -142,11 +143,6 @@ const BacklogPage = () => {
 
     const toggleViewMode = () => {
         setViewMode(viewMode === 'table' ? 'cards' : 'table');
-    };
-    const toggleColorMode = () => {
-        const newMode = mode === 'dark' ? 'light' : 'dark';
-        setMode(newMode);
-        localStorage.setItem('themeMode', newMode);
     };
 
     return (

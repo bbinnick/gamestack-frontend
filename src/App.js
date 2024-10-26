@@ -4,6 +4,7 @@ import Register from './pages/Register';
 import LogIn from './pages/LogIn';
 import Dashboard from './pages/Dashboard';
 import Backlog from './pages/Backlog';
+import AddGameForm from './components/AddGameForm';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/sign-up" element={<Register />} />
         <Route path="/log-in" element={<LogIn />} />
         <Route path="/backlog" element={<Backlog />} />
+        <Route path="/add-game" element={<AddGameForm />} />
         {/* Other routes */}
       </Routes>
     </BrowserRouter>
