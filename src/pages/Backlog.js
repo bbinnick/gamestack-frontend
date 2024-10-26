@@ -202,6 +202,7 @@ const BacklogPage = () => {
                                             Status: {game.status}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
+                                            {/* Fix to show correct date */}
                                             Added On: {new Date(game.addedOn).toLocaleDateString()}
                                         </Typography>
                                     </CardContent>
