@@ -43,7 +43,11 @@ const BacklogPage = () => {
 
             axios.get('http://localhost:8080/games/backlog', config)
                 .then(response => {
-                    setGames(response.data);
+                    const gamesData = response.data.map(game => {
+                        const imageUrl = `http://localhost:8080/uploads/${game.imageUrl}`;
+                        return { ...game, imageUrl };
+                    });
+                    setGames(gamesData);
                 })
                 .catch(error => {
                     console.error('Error fetching backlog:', error);
@@ -91,19 +95,20 @@ const BacklogPage = () => {
             field: 'image',
             headerName: 'Game Image',
             width: 130,
-            renderCell: (params) => (
-                params.row.image ? (
+            renderCell: (params) => {
+                return params.row.imageUrl ? (
                     <img
-                        src={params.row.image}
+                        src={params.row.imageUrl}
                         alt={params.row.title}
+                        onError={(e) => { e.target.style.display = 'none'; }}  // Hide if the image URL is broken
                         style={{ width: '100px', height: 'auto', borderRadius: '5px' }}
                     />
                 ) : (
                     <Tooltip title="No image available">
                         <ImageNotSupportedIcon color="disabled" />
                     </Tooltip>
-                )
-            ),
+                );
+            },
         },
         { field: 'title', headerName: 'Title', width: 200 },
         { field: 'genre', headerName: 'Genre', width: 150 },
@@ -173,14 +178,14 @@ const BacklogPage = () => {
                     </Box>
                 ) : (
                     <Grid2 container spacing={4} sx={{ mt: 4 }}>
-                        {games.map((game) => (
+                        {games.map(game => (
                             <Grid2 key={game.id} xs={12} sm={6} md={4}>
                                 <Card sx={{ maxWidth: 345 }}>
-                                    {game.image ? (
+                                    {game.imageUrl ? (
                                         <CardMedia
                                             component="img"
                                             height="140"
-                                            image={game.image}
+                                            image={game.imageUrl}
                                             alt={game.title}
                                         />
                                     ) : (
