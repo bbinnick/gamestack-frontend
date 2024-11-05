@@ -1,13 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
-import FormLabel from '@mui/material/FormLabel';
-import FormControl from '@mui/material/FormControl';
-import Link from '@mui/material/Link';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
+import React, { useState } from 'react';
+import { Box, Button, CssBaseline, FormLabel, FormControl, Link, TextField, Typography, Stack } from '@mui/material';
 import MuiCard from '@mui/material/Card';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 import { MenuItem, Select } from '@mui/material';
@@ -15,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import getSignUpTheme from '../theme/getSignUpTheme.js';
 import TemplateFrame from '../components/TemplateFrame.js';
+import { useThemeContext } from '../components/ThemeContext';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -51,7 +44,7 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function SignUp() {
-  const [mode, setMode] = useState('light');
+  const { mode, toggleColorMode } = useThemeContext();
   const SignUpTheme = createTheme(getSignUpTheme(mode));
   const [nameError, setNameError] = useState(false);
   const [nameErrorMessage, setNameErrorMessage] = useState('');
@@ -60,29 +53,7 @@ export default function SignUp() {
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
   const [role, setRole] = useState('USER');
-
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Check if there is a preferred mode in localStorage
-    const savedMode = localStorage.getItem('themeMode');
-    if (savedMode) {
-      setMode(savedMode);
-    } else {
-      // If no preference is found, it uses system preference
-      const systemPrefersDark = window.matchMedia(
-        '(prefers-color-scheme: dark)',
-      ).matches;
-      setMode(systemPrefersDark ? 'dark' : 'light');
-    }
-  }, []);
-
-  const toggleColorMode = () => {
-    const newMode = mode === 'dark' ? 'light' : 'dark';
-    setMode(newMode);
-    localStorage.setItem('themeMode', newMode); // Save the selected mode to localStorage
-  };
-
 
   const validateInputs = () => {
     const email = document.getElementById('email');
@@ -141,17 +112,14 @@ export default function SignUp() {
         throw new Error('Token not found in response');
       }
       console.log('User registered successfully:', token);
-      localStorage.setItem('token', token); // Store the token in local storage
+      localStorage.setItem('token', token);
       navigate('/');
     } catch (error) {
       if (error.response) {
-        // Server responded with a status other than 200 range
         console.error('Server responded with an error:', error.response.data);
       } else if (error.request) {
-        // Request was made but no response was received
         console.error('No response received:', error.request);
       } else {
-        // Something happened in setting up the request
         console.error('Error setting up request:', error.message);
       }
     }

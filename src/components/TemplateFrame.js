@@ -1,5 +1,4 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -8,7 +7,8 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { useNavigate } from 'react-router-dom';
-import ToggleColorMode from '../components/TemplateColorMode';
+import { useThemeContext } from '../components/ThemeContext';
+import ToggleColorMode from './ToggleColorMode.js';
 import getSignUpTheme from '../theme/getSignUpTheme.js';
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
@@ -26,12 +26,8 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
   flex: '0 0 auto',
 }));
 
-function TemplateFrame({
-  mode,
-  toggleColorMode,
-  children,
-  user,
-}) {
+function TemplateFrame({ children, user }) {
+  const { mode } = useThemeContext();
   const navigate = useNavigate();
   const handleBackToHome = () => {
     navigate('/');
@@ -79,18 +75,23 @@ function TemplateFrame({
             >
               Add a Game
             </Button>
+            <Button
+              variant="text"
+              size="small"
+              aria-label="View Backlog"
+              onClick={() => navigate('/backlog')}
+              sx={{ display: { xs: 'none', sm: 'flex' } }}
+            >
+              Backlog
+            </Button>
             {/* Currently does not adapt to dark/light mode */}
             {user && (
-              <Box variant="text" aria-label="username" sx={{ display: { xs: 'none', sm: 'flex' }}}>
+              <Box variant="text" aria-label="username" sx={{ display: { xs: 'none', sm: 'flex' } }}>
                 Logged in as: {user.username}
               </Box>
             )}
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <ToggleColorMode
-                data-screenshot="toggle-mode"
-                mode={mode}
-                toggleColorMode={toggleColorMode}
-              />
+              <ToggleColorMode />
             </Box>
           </Toolbar>
         </StyledAppBar>
@@ -99,11 +100,5 @@ function TemplateFrame({
     </ThemeProvider >
   );
 }
-
-TemplateFrame.propTypes = {
-  children: PropTypes.node,
-  mode: PropTypes.oneOf(['dark', 'light']).isRequired,
-  toggleColorMode: PropTypes.func.isRequired,
-};
 
 export default TemplateFrame;

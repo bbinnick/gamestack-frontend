@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { TextField, Button, Stack, MenuItem } from '@mui/material';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
@@ -9,15 +10,20 @@ const AddGameForm = () => {
         genre: '',
         status: ''
     });
+    const [imageFile, setImageFile] = useState(null);
 
     const handleChange = (e) => {
         setGame({ ...game, [e.target.name]: e.target.value });
     };
 
+    const handleFileChange = (e) => {
+        setImageFile(e.target.files[0]);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token');
 
+        const token = localStorage.getItem('token');
         if (!token) {
             console.error('No token found, please log in.');
             return;
@@ -33,10 +39,16 @@ const AddGameForm = () => {
             return;
         }
 
-        const gameWithUser = { ...game, userId };
+        const formData = new FormData();
+        formData.append('game', new Blob([JSON.stringify({ ...game, userId })], { type: 'application/json' }));
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
         try {
-            const response = await axios.post('http://localhost:8080/games/add', gameWithUser, {
+            const response = await axios.post('http://localhost:8080/games/add', formData, {
                 headers: {
+                    'Content-Type': 'multipart/form-data',
                     Authorization: `Bearer ${token}`
                 }
             });
@@ -46,40 +58,63 @@ const AddGameForm = () => {
         }
     };
     return (
-        <form onSubmit={handleSubmit}>
-            <input
-                type="text"
-                name="title"
-                value={game.title}
-                onChange={handleChange}
-                placeholder="Game Title"
-                required
-            />
-            <input
-                type="text"
-                name="platform"
-                value={game.platform}
-                onChange={handleChange}
-                placeholder="Platform"
-                required
-            />
-            <input
-                type="text"
-                name="genre"
-                value={game.genre}
-                onChange={handleChange}
-                placeholder="Genre"
-                required
-            />
-            <select name="status" value={game.status} onChange={handleChange} required>
-                <option value="" disabled>Select Status</option>
-                <option value="Not Started">Not Started</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-            </select>
-            <button type="submit">Add Game</button>
+        <form onSubmit={handleSubmit} encType="multipart/form-data">
+            <Stack direction="column" spacing={2}>
+                <TextField
+                    label="Game Title"
+                    name="title"
+                    value={game.title}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                />
+                <TextField
+                    label="Platform"
+                    name="platform"
+                    value={game.platform}
+                    onChange={handleChange}
+                    fullWidth
+                />
+                <TextField
+                    label="Genre"
+                    name="genre"
+                    value={game.genre}
+                    onChange={handleChange}
+                    fullWidth
+                />
+                <TextField
+                    label="Status"
+                    name="status"
+                    select
+                    value={game.status}
+                    onChange={handleChange}
+                    fullWidth
+                >
+                    <MenuItem value="">Select Status</MenuItem>
+                    <MenuItem value="Not Started">Not Started</MenuItem>
+                    <MenuItem value="In Progress">In Progress</MenuItem>
+                    <MenuItem value="Completed">Completed</MenuItem>
+                    <MenuItem value="Replay">Replay</MenuItem>
+                    <MenuItem value="Wishlist">Wishlist</MenuItem>
+                </TextField>
+                <label htmlFor="upload-button">
+                    <input
+                        id="upload-button"
+                        type="file"
+                        accept="image/jpeg, image/png, image/gif"
+                        onChange={handleFileChange}
+                        style={{ display: 'none' }}
+                    />
+                    <Button variant="contained" component="span">
+                        Choose File
+                    </Button>
+                    {imageFile && <span> {imageFile.name}</span>}
+                </label>
+                <Button type="submit" variant="contained">Add Game</Button>
+            </Stack>
         </form>
     );
 };
+
 
 export default AddGameForm;

@@ -9,9 +9,10 @@ import AddGameForm from '../components/AddGameForm';
 import getDashboardTheme from '../theme/getDashboardTheme';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import { useThemeContext } from '../components/ThemeContext';
 
 export default function Dashboard() {
-    const [mode, setMode] = useState('light');
+    const { mode, toggleColorMode } = useThemeContext();
     const DashboardTheme = createTheme(getDashboardTheme(mode));
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
@@ -35,25 +36,6 @@ export default function Dashboard() {
         localStorage.removeItem('token');
         setUser(null);
         navigate('/log-in');
-    };
-
-    useEffect(() => {
-        const savedMode = localStorage.getItem('themeMode');
-        if (savedMode) {
-            setMode(savedMode);
-        } else {
-            // If no preference is found, it uses system preference
-            const systemPrefersDark = window.matchMedia(
-                '(prefers-color-scheme: dark)',
-            ).matches;
-            setMode(systemPrefersDark ? 'dark' : 'light');
-        }
-    }, []);
-
-    const toggleColorMode = () => {
-        const newMode = mode === 'dark' ? 'light' : 'dark';
-        setMode(newMode);
-        localStorage.setItem('themeMode', newMode);
     };
 
     return (
