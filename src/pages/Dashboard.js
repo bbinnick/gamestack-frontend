@@ -5,7 +5,6 @@ import MainContent from '../components/MainContent';
 import Latest from '../components/Latest';
 import Footer from '../components/Footer';
 import TemplateFrame from '../components/TemplateFrame';
-import AddGameForm from '../components/AddGameForm';
 import getDashboardTheme from '../theme/getDashboardTheme';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -55,7 +54,6 @@ export default function Dashboard() {
                 >
                     <div>
                         <h1>Your Dashboard</h1>
-                        <AddGameForm />
                     </div>
                     <MainContent />
                     <Latest />

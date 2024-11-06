@@ -44,7 +44,9 @@ const BacklogPage = () => {
             axios.get('http://localhost:8080/games/backlog', config)
                 .then(response => {
                     const gamesData = response.data.map(game => {
-                        const imageUrl = `http://localhost:8080/uploads/${game.imageUrl}`;
+                        const imageUrl = game.imageUrl
+                            ? `http://localhost:8080/uploads/${game.imageUrl}`
+                            : null;
                         return { ...game, imageUrl };
                     });
                     setGames(gamesData);
@@ -208,7 +210,7 @@ const BacklogPage = () => {
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
                                             {/* Fix to show correct date */}
-                                            Added On: {new Date(game.addedOn).toLocaleDateString()}
+                                            Added On: {game.addedOn}
                                         </Typography>
                                     </CardContent>
                                 </Card>
