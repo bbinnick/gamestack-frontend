@@ -152,6 +152,8 @@ const BacklogPage = () => {
         setViewMode(viewMode === 'table' ? 'cards' : 'table');
     };
 
+    const paginationModel = { page: 0, pageSize: 10 };
+
     return (
         <TemplateFrame
             mode={mode}
@@ -173,8 +175,8 @@ const BacklogPage = () => {
                         <DataGrid
                             rows={games}
                             columns={columns}
-                            pageSize={5}
-                            rowsPerPageOptions={[5, 10, 25]}
+                            initialState={{ pagination: { paginationModel } }}
+                            pageSizeOptions={[10, 20, 50]}
                             getRowId={(row) => row.id}
                         />
                     </Box>

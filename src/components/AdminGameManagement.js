@@ -168,7 +168,7 @@ const AdminGameManagement = () => {
                 }
             });
             console.log('Game removed from backlog:', gameId);
-            fetchGames(); // Refresh the list of games
+            fetchGames();
         } catch (error) {
             console.error('Error removing game from backlog:', error);
         }
@@ -219,6 +219,8 @@ const AdminGameManagement = () => {
             ),
         },
     ];
+
+    const paginationModel = { page: 0, pageSize: 10 };
 
     return (
         <TemplateFrame
@@ -278,8 +280,8 @@ const AdminGameManagement = () => {
                         <DataGrid
                             rows={games}
                             columns={columns}
-                            pageSize={5}
-                            rowsPerPageOptions={[5, 10, 25]}
+                            initialState={{ pagination: { paginationModel } }}
+                            pageSizeOptions={[10, 20, 50]}
                             getRowId={(row) => row.id}
                         />
                     </Box>
