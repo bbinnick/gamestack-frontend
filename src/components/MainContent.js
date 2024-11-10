@@ -15,6 +15,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import { styled } from '@mui/material/styles';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
+import { useNavigate } from 'react-router-dom';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   display: 'flex',
@@ -123,6 +124,7 @@ MainContent.propTypes = {
 
 export default function MainContent({ games }) {
   const [focusedCardIndex, setFocusedCardIndex] = React.useState(null);
+  const navigate = useNavigate();
 
   const handleFocus = (index) => {
     setFocusedCardIndex(index);
@@ -132,8 +134,12 @@ export default function MainContent({ games }) {
     setFocusedCardIndex(null);
   };
   
-  const handleClick = () => {
+  const handleFilterClick = () => {
     console.info('You clicked the filter chip.');
+  };
+
+  const handleCardClick = (gameId) => {
+    navigate(`/games/${gameId}`);
   };
 
   return (
@@ -174,9 +180,9 @@ export default function MainContent({ games }) {
             overflow: 'auto',
           }}
         >
-          <Chip onClick={handleClick} size="medium" label="All categories" />
+          <Chip onClick={handleFilterClick} size="medium" label="All categories" />
           <Chip
-            onClick={handleClick}
+            onClick={handleFilterClick}
             size="medium"
             label="Company"
             sx={{
@@ -185,7 +191,7 @@ export default function MainContent({ games }) {
             }}
           />
           <Chip
-            onClick={handleClick}
+            onClick={handleFilterClick}
             size="medium"
             label="Product"
             sx={{
@@ -208,14 +214,14 @@ export default function MainContent({ games }) {
       </Box>
       <Grid container spacing={2}>
         {games.map((game, index) => (
-          <Grid key={game.id} xs={12} sm={6} md={4} lg={2.4} xl={2.4}>
-            
+          <Grid key={game.id} xs={12} sm={6} md={4} lg={2.4}>
             <StyledCard
               variant="outlined"
               onFocus={() => handleFocus(index)}
               onBlur={handleBlur}
               tabIndex={0}
               className={focusedCardIndex === index ? 'Mui-focused' : ''}
+              onClick={() => handleCardClick(game.id)}
             >
               {game.imageUrl ? (
                 <CardMedia

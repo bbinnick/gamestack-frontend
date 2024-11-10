@@ -2,6 +2,7 @@ import * as React from 'react';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -67,32 +68,33 @@ function TemplateFrame({ children, user }) {
               <ArrowBackRoundedIcon />
             </IconButton>
             <Button
-              variant="text"
-              size="small"
-              aria-label="Add a Game"
-              onClick={() => navigate('/add-game')}
-              sx={{ display: { xs: 'none', sm: 'flex' } }}
+                variant="text"
+                size="small"
+                aria-label="View Backlog"
+                onClick={() => navigate('/backlog')}
+                sx={{ display: { xs: 'none', sm: 'flex' } }}
             >
-              Add a Game
+                Backlog
             </Button>
-            <Button
-              variant="text"
-              size="small"
-              aria-label="View Backlog"
-              onClick={() => navigate('/backlog')}
-              sx={{ display: { xs: 'none', sm: 'flex' } }}
-            >
-              Backlog
-            </Button>
-            {/* Currently does not adapt to dark/light mode */}
-            {user && (
-              <Box variant="text" aria-label="username" sx={{ display: { xs: 'none', sm: 'flex' } }}>
-                Logged in as: {user.username}
-              </Box>
+            {user && user.authorities === 'ROLE_ADMIN' && (
+                <Button
+                    variant="text"
+                    size="small"
+                    aria-label="Admin Page"
+                    onClick={() => navigate('/admin')}
+                    sx={{ display: { xs: 'none', sm: 'flex' } }}
+                >
+                    Admin Page
+                </Button>
             )}
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <ToggleColorMode />
-            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {user && (
+                <Typography variant="body2" aria-label="username" sx={{ color: 'text.primary' }}>
+                  Logged in as: {user.username}
+                </Typography>
+            )}
+           <ToggleColorMode />
+          </Box>          
           </Toolbar>
         </StyledAppBar>
         <Box sx={{ flex: '1 1', overflow: 'auto' }}>{children}</Box>

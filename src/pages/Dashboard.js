@@ -63,7 +63,6 @@ export default function Dashboard() {
             mode={mode}
             toggleColorMode={toggleColorMode}
             user={user}
-        //handleLogout={handleLogout}
         >
             <ThemeProvider theme={DashboardTheme}>
                 <CssBaseline enableColorScheme />

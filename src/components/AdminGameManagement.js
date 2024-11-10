@@ -41,7 +41,7 @@ const AdminGameManagement = () => {
         }
 
         try {
-            const response = await axios.get('http://localhost:8080/games/all', {
+            const response = await axios.get('http://localhost:8080/games/all-with-users', {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -151,26 +151,6 @@ const AdminGameManagement = () => {
             fetchGames(); // Refresh the list of games
         } catch (error) {
             console.error('Error deleting game:', error);
-        }
-    };
-
-    const handleRemoveFromBacklog = async (gameId) => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.error('No token found, please log in.');
-            return;
-        }
-
-        try {
-            await axios.delete(`http://localhost:8080/games/remove-from-backlog/${gameId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            console.log('Game removed from backlog:', gameId);
-            fetchGames();
-        } catch (error) {
-            console.error('Error removing game from backlog:', error);
         }
     };
 
@@ -288,12 +268,13 @@ const AdminGameManagement = () => {
                 </Box>
                 <Box mt={4}>
                     <Typography variant="h5" gutterBottom>
+                        {/*Revise this to manage users instead*/}
                         Users and Their Backlogs
                     </Typography>
                     <Grid2 container spacing={4}>
                         {games.map(game => (
-                            game.backlogUsers.length > 0 ? (
-                                game.backlogUsers.map(user => (
+                            game.userGames.length > 0 ? (
+                                game.userGames.map(user => (
                                     <Grid2 key={user.id} xs={12} sm={6} md={4}>
                                         <Card sx={{ maxWidth: 345 }}>
                                             <CardContent>
@@ -302,6 +283,12 @@ const AdminGameManagement = () => {
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">
                                                     Email: {user.email}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Status: {user.status}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Added On: {user.addedOn}
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">
                                                     Backlog:
