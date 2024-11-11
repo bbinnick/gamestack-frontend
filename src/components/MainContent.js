@@ -7,7 +7,6 @@ import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
-import Grid from '@mui/material/Grid2';
 import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -16,6 +15,7 @@ import { styled } from '@mui/material/styles';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import { useNavigate } from 'react-router-dom';
+import Grid2 from '@mui/material/Grid2';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   display: 'flex',
@@ -72,7 +72,7 @@ function Author({ authors }) {
         <AvatarGroup max={3}>
           {authors.map((author, index) => (
             <Avatar
-              key={index}
+              key={index} // Change to key={author.name || index} for more uniqueness
               alt={author.name}
               src={author.avatar}
               sx={{ width: 24, height: 24 }}
@@ -133,7 +133,7 @@ export default function MainContent({ games }) {
   const handleBlur = () => {
     setFocusedCardIndex(null);
   };
-  
+
   const handleFilterClick = () => {
     console.info('You clicked the filter chip.');
   };
@@ -212,9 +212,9 @@ export default function MainContent({ games }) {
           <Search />
         </Box>
       </Box>
-      <Grid container spacing={2}>
+      <Grid2 container spacing={2}>
         {games.map((game, index) => (
-          <Grid key={game.id} xs={12} sm={6} md={4} lg={2.4}>
+          <Grid2 key={game.id} xs={12} sm={6} md={4} lg={2.4}>
             <StyledCard
               variant="outlined"
               onFocus={() => handleFocus(index)}
@@ -255,9 +255,9 @@ export default function MainContent({ games }) {
               </StyledCardContent>
               {/* <Author authors={cardData[5].authors} /> */}
             </StyledCard>
-          </Grid>
+          </Grid2>
         ))}
-      </Grid>
+      </Grid2>
     </Box>
   );
 }
