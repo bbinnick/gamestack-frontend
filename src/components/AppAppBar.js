@@ -46,15 +46,14 @@ export default function AppAppBar({ user, handleLogout }) {
                 <StyledToolbar variant="dense" disableGutters>
                     <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
                         <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-                            <Button variant="text" color="info" size="small">
-                                Features
+                            <Button variant="text" color="info" size="small" onClick={() => navigate('/Backlog')}>
+                                Backlog
                             </Button>
-                            <Button variant="text" color="info" size="small">
-                                Highlights
-                            </Button>
-                            <Button variant="text" color="info" size="small" sx={{ minWidth: 0 }}>
-                                Blog
-                            </Button>
+                            {user && user.authorities === 'ROLE_ADMIN' && (
+                                <Button variant="text" color="info" size="small" onClick={() => navigate('/admin')}>
+                                    Admin
+                                </Button>
+                            )}
                         </Box>
                     </Box>
                     <Box
@@ -97,9 +96,18 @@ export default function AppAppBar({ user, handleLogout }) {
                                     </IconButton>
                                 </Box>
                                 <Divider sx={{ my: 3 }} />
-                                <MenuItem>Features</MenuItem>
-                                <MenuItem>Highlights</MenuItem>
-                                <MenuItem>Blog</MenuItem>
+                                <MenuItem>
+                                    <Button color="primary" variant="outlined" fullWidth onClick={() => navigate('/Backlog')}>
+                                        Backlog
+                                    </Button>
+                                </MenuItem>
+                                <MenuItem>
+                                {user && user.authorities === 'ROLE_ADMIN' && (
+                                    <Button variant="text" color="info" size="small" onClick={() => navigate('/admin')}>
+                                        Admin
+                                    </Button>
+                                )}
+                                </MenuItem>
                                 {user ? (
                                     <MenuItem>
                                         <Button color="primary" variant="contained" fullWidth onClick={handleLogout}>

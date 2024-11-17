@@ -44,8 +44,12 @@ const BacklogPage = () => {
             axios.get('http://localhost:8080/games/backlog', config)
                 .then(response => {
                     const gamesData = response.data.map(game => {
-                        const imageUrl = `http://localhost:8080/uploads/${game.imageUrl}`;
-                        return { ...game, imageUrl };
+                        // Needs to be updated to handle multiple user games and grab correct status
+                        const userGame = game.userGames[0] || {};
+                        const imageUrl = game.imageUrl
+                            ? `http://localhost:8080/uploads/${game.imageUrl}`
+                            : null;
+                        return { ...game, imageUrl, status: userGame.status, addedOn: userGame.addedOn };
                     });
                     setGames(gamesData);
                 })
@@ -60,12 +64,12 @@ const BacklogPage = () => {
         const token = localStorage.getItem('token');
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
-        axios.delete(`http://localhost:8080/games/${gameId}`, config)
+        axios.delete(`http://localhost:8080/games/remove-from-backlog/${gameId}`, config)
             .then(() => {
-                console.log('Game deleted:', gameId);
+                console.log('Game removed from backlog:', gameId);
                 setGames(prevGames => prevGames.filter(game => game.id !== gameId));
             })
-            .catch(error => console.error('Error deleting game:', error));
+            .catch(error => console.error('Error removing game from backlog:', error));
     };
 
     // Update game status
@@ -150,6 +154,8 @@ const BacklogPage = () => {
         setViewMode(viewMode === 'table' ? 'cards' : 'table');
     };
 
+    const paginationModel = { page: 0, pageSize: 10 };
+
     return (
         <TemplateFrame
             mode={mode}
@@ -171,8 +177,8 @@ const BacklogPage = () => {
                         <DataGrid
                             rows={games}
                             columns={columns}
-                            pageSize={5}
-                            rowsPerPageOptions={[5, 10, 25]}
+                            initialState={{ pagination: { paginationModel } }}
+                            pageSizeOptions={[10, 20, 50]}
                             getRowId={(row) => row.id}
                         />
                     </Box>
@@ -207,8 +213,7 @@ const BacklogPage = () => {
                                             Status: {game.status}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            {/* Fix to show correct date */}
-                                            Added On: {new Date(game.addedOn).toLocaleDateString()}
+                                            Added On: {game.addedOn}
                                         </Typography>
                                     </CardContent>
                                 </Card>
