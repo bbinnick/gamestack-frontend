@@ -125,7 +125,7 @@ const GameDetails = () => {
   }
 
   return (
-    <TemplateFrame mode={mode} toggleColorMode={toggleColorMode}>
+    <TemplateFrame mode={mode} toggleColorMode={toggleColorMode} user={user}>
       <Container>
         <Typography variant="h4" gutterBottom>
           {game.title}

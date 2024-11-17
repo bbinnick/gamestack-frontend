@@ -5,7 +5,7 @@ import LogIn from './pages/LogIn';
 import Dashboard from './pages/Dashboard';
 import Backlog from './pages/Backlog';
 import GameDetails from './pages/GameDetails';
-import AdminGameManagement from './components/AdminGameManagement';
+import AdminGameManagement from './pages/AdminGameManagement';
 import { Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
@@ -14,7 +14,7 @@ function App() {
   const token = localStorage.getItem('token');
   const user = token ? jwtDecode(token) : null;
   
-  const RequireAuth = ({ children, role }) => {
+  const RequireAuth = ({ children, role, user }) => {
       if (!user) {
           return <Navigate to="/log-in" />;
       }
@@ -33,7 +33,7 @@ function App() {
         <Route
           path="/backlog"
           element={
-            <RequireAuth>
+            <RequireAuth user={user}>
               <Backlog />
             </RequireAuth>
           }

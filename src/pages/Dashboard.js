@@ -52,10 +52,12 @@ export default function Dashboard() {
     }, []);
 
     const handleLogout = () => {
-        console.log(`${user.username} logged out`);
-        localStorage.removeItem('token');
-        setUser(null);
-        navigate('/log-in');
+        if (window.confirm('Are you sure you want to log out?')) {
+            console.log(`${user.username} logged out`);
+            localStorage.removeItem('token');
+            setUser(null);
+            navigate('/log-in');
+        }
     };
 
     return (
