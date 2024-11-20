@@ -8,11 +8,10 @@ import Link from '@mui/material/Link';
 import { Box, Button, TextField, Typography, Stack, Card } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import ForgotPassword from './ForgotPassword';
 import TemplateFrame from '../components/TemplateFrame';
-import { jwtDecode } from 'jwt-decode';
 import { useThemeContext } from '../components/ThemeContext';
+import authService from '../services/AuthService';
 
 const CardStyled = styled(Card)(({ theme }) => ({
   display: 'flex',
@@ -99,12 +98,12 @@ export default function LogIn({ setUser }) {
     }
 
     try {
-      const response = await axios.post('http://localhost:8080/users/login', { email, password });
+      const response = await authService.getAxiosInstance().post('/users/login', { email, password });
       const { jwt: token } = response.data;
-      localStorage.setItem('token', token);
-      console.log('User logged in successfully:', token);
-      const decodedUser = jwtDecode(token);
-      setUser(decodedUser); // Update the user state
+      authService.setToken(token);
+      const user = authService.getUser();
+      console.log('User logged in successfully:', user.username);
+      setUser(authService.getUser()); // Update the user state
       navigate('/');
     } catch (error) {
       console.error('There was an error logging in the user:', error);

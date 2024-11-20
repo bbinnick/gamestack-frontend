@@ -6,34 +6,43 @@ import Dashboard from './pages/Dashboard';
 import Backlog from './pages/Backlog';
 import GameDetails from './pages/GameDetails';
 import AdminGameManagement from './pages/AdminGameManagement';
-import { jwtDecode } from 'jwt-decode';
+import authService from './services/AuthService';
 
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(authService.getUser());
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      const decodedUser = jwtDecode(token);
+      const decodedUser = authService.getUser();
       setUser(decodedUser);
     }
   }, []);
-  
-  const RequireAuth = ({ children, role }) => {
-      if (!user) {
-          return <Navigate to="/log-in" />;
-      }
-      if (role && !user.authorities.includes(role)) {
-        return <Navigate to="/" />;
-      }
-      return children;
+
+  const handleLogout = (navigate) => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      authService.removeToken();
+      setUser(null);
+      console.log(`${user.username} logged out`);
+      navigate('/log-in');
+    }
   };
-  
+
+  const RequireAuth = ({ children, role }) => {
+    if (!user) {
+      return <Navigate to="/log-in" />;
+    }
+    if (role && !user.authorities.includes(role)) {
+      return <Navigate to="/" />;
+    }
+    return children;
+  };
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Dashboard user={user} />} />
+        <Route path="/" element={<Dashboard user={user} handleLogout={handleLogout} />} />
         <Route path="/sign-up" element={<Register setUser={setUser} />} />
         <Route path="/log-in" element={<LogIn setUser={setUser} />} />
         <Route
@@ -58,6 +67,5 @@ function App() {
     </BrowserRouter>
   );
 }
-
 
 export default App;

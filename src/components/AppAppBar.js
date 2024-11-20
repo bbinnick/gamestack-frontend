@@ -13,8 +13,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { useNavigate } from 'react-router-dom';
 
-//REMOVE THIS FILE, MIGRATE TO TEMPLATEFRAME.JS
-
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
@@ -64,7 +62,7 @@ export default function AppAppBar({ user, handleLogout }) {
                         }}
                     >
                         {user ? (
-                            <Button color="primary" variant="contained" size="small" onClick={handleLogout}>
+                            <Button color="primary" variant="contained" size="small" onClick={() => handleLogout(navigate)}>
                                 Log out
                             </Button>
                         ) : (

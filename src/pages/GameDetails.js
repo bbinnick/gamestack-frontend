@@ -3,10 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, CardMedia } from '@mui/material';
 import Rating from '@mui/material/Rating';
 import StarIcon from '@mui/icons-material/Star';
-import axios from 'axios';
 import TemplateFrame from '../components/TemplateFrame';
 import { useThemeContext } from '../components/ThemeContext';
-import { jwtDecode } from 'jwt-decode';
+import authService from '../services/AuthService';
 
 const labels = {
   0.5: 'Boring',
@@ -28,51 +27,38 @@ function getLabelText(value) {
 const GameDetails = () => {
   const { mode, toggleColorMode } = useThemeContext();
   const { gameId } = useParams();
-  const navigate = useNavigate();
   const [game, setGame] = useState(null);
-  const [user, setUser] = useState(null);
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(-1);
+  const user = authService.getUser();
+  const navigate = useNavigate();
 
 
   useEffect(() => {
     const fetchGameDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/games/${gameId}`);
+        const response = await authService.getAxiosInstance().get(`/games/${gameId}`);
         setGame(response.data);
       } catch (error) {
         console.error('Error fetching game details:', error);
       }
     };
 
-    const fetchUserRating = async (userId) => {
+    const fetchUserRating = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:8080/games/${gameId}/user-rating`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const response = await authService.getAxiosInstance().get(`/games/${gameId}/user-rating`);
         setRating(response.data.rating || 0);
       } catch (error) {
         console.error('Error fetching user rating:', error);
       }
     };
-    // refactor this into a helper class
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const decodedUser = jwtDecode(token);
-        setUser(decodedUser);
-        fetchUserRating();
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('token');
-      }
+
+    if (user) {
+      fetchUserRating();
     }
 
     fetchGameDetails();
-  }, [gameId]);
+  }, [gameId, user]);
 
   const handleAddToBacklog = async () => {
     if (!user) {
@@ -80,18 +66,8 @@ const GameDetails = () => {
       return;
     }
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No token found, please log in.');
-      return;
-    }
-
     try {
-      await axios.post(`http://localhost:8080/games/add-to-backlog/${gameId}`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      await authService.getAxiosInstance().post(`/games/add-to-backlog/${gameId}`);
       console.log('Game added to backlog:', gameId);
     } catch (error) {
       console.error('Error adding game to backlog:', error);
@@ -107,12 +83,8 @@ const GameDetails = () => {
     setRating(newValue);
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:8080/games/${gameId}/rate`, null, {
-        params: { rating: newValue },
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      await authService.getAxiosInstance().post(`/games/${gameId}/rate`, null, {
+        params: { rating: newValue }
       });
       console.log('Rating submitted:', newValue);
     } catch (error) {

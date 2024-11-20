@@ -5,12 +5,11 @@ import {
     Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import TemplateFrame from '../components/TemplateFrame';
 import { useNavigate } from 'react-router-dom';
 import { useThemeContext } from '../components/ThemeContext';
+import authService from '../services/AuthService';
 
 const AdminGameManagement = () => {
     const { mode, toggleColorMode } = useThemeContext();
@@ -21,39 +20,23 @@ const AdminGameManagement = () => {
     });
     const [imageFile, setImageFile] = useState(null);
     const [games, setGames] = useState([]);
-    const [user, setUser] = useState(null);
     const [editingGame, setEditingGame] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogAction, setDialogAction] = useState(null);
+    const user = authService.getUser();
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                const decodedUser = jwtDecode(token);
-                setUser(decodedUser ? decodedUser : null);
-            } catch (error) {
-                console.error('Error parsing stored user:', error);
-                localStorage.removeItem('token');
-            }
+        if (user) {
+            fetchGames();
+        } else {
+            navigate('/log-in');
         }
-        fetchGames();
-    }, []);
+    }, [user, navigate]);
 
     const fetchGames = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.error('No token found, please log in.');
-            return;
-        }
-
         try {
-            const response = await axios.get('http://localhost:8080/games/all-with-users', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            const response = await authService.getAxiosInstance().get('/games/all-with-users');
             setGames(response.data);
         } catch (error) {
             console.error('Error fetching games:', error);
@@ -95,9 +78,8 @@ const AdminGameManagement = () => {
     };
 
     const handleConfirmAction = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.error('No token found, please log in.');
+        if (!user) {
+            console.error('No user found, please log in.');
             setDialogOpen(false);
             return;
         }
@@ -110,10 +92,9 @@ const AdminGameManagement = () => {
             }
 
             try {
-                const response = await axios.post('http://localhost:8080/games/add', formData, {
+                const response = await authService.getAxiosInstance().post('/games/add', formData, {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
-                        Authorization: `Bearer ${token}`
+                        'Content-Type': 'multipart/form-data'
                     }
                 });
                 console.log('Game added:', response.data);
@@ -135,10 +116,9 @@ const AdminGameManagement = () => {
             }
 
             try {
-                const response = await axios.patch(`http://localhost:8080/games/${editingGame.id}`, formData, {
+                const response = await authService.getAxiosInstance().patch(`/games/${editingGame.id}`, formData, {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
-                        Authorization: `Bearer ${token}`
+                        'Content-Type': 'multipart/form-data'
                     }
                 });
                 console.log('Game updated:', response.data);
@@ -155,18 +135,13 @@ const AdminGameManagement = () => {
             }
         } else if (dialogAction.type === 'delete') {
             try {
-                await axios.delete(`http://localhost:8080/games/${dialogAction.gameId}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
+                await authService.getAxiosInstance().delete(`/games/${dialogAction.gameId}`);
                 console.log('Game deleted:', dialogAction.gameId);
                 fetchGames();
             } catch (error) {
                 console.error('Error deleting game:', error);
             }
         }
-
         setDialogOpen(false);
     };
 

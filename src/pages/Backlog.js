@@ -23,52 +23,39 @@ import Rating from '@mui/material/Rating';
 import StarIcon from '@mui/icons-material/Star';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import TemplateFrame from '../components/TemplateFrame';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 import { useThemeContext } from '../components/ThemeContext';
+import authService from '../services/AuthService';
 
 const BacklogPage = () => {
     const { mode, toggleColorMode } = useThemeContext();
     const [games, setGames] = useState([]);
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
-    const [user, setUser] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogAction, setDialogAction] = useState(null);
+    const user = authService.getUser();
     const navigate = useNavigate();
 
     // Fetch user's game backlog
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
+        const fetchBacklog = async () => {
             try {
-                const decodedUser = jwtDecode(token);
-                setUser(decodedUser ? decodedUser : null);
-
-                const config = {
-                    headers: { Authorization: `Bearer ${token}` }
-                };
-
-                axios.get('http://localhost:8080/games/backlog', config)
-                    .then(response => {
-                        const gamesData = response.data.map(game => {
-                            const userGame = game.userGames.find(ug => ug.userId === decodedUser.user_id) || {};
-                            const imageUrl = game.imageUrl
-                                ? `http://localhost:8080/uploads/${game.imageUrl}`
-                                : null;
-                            return { ...game, imageUrl, status: userGame.status, addedOn: userGame.addedOn, rating: userGame.rating || 0 };
-                        });
-                        setGames(gamesData);
-                    })
-                    .catch(error => {
-                        console.error('Error fetching backlog:', error);
-                    });
+                const response = await authService.getAxiosInstance().get('/games/backlog');
+                const gamesData = response.data.map(game => {
+                    const userGame = game.userGames.find(ug => ug.userId === user.user_id) || {};
+                    const imageUrl = game.imageUrl ? `http://localhost:8080/uploads/${game.imageUrl}` : null;
+                    return { ...game, imageUrl, status: userGame.status, addedOn: userGame.addedOn, rating: userGame.rating || 0 };
+                });
+                setGames(gamesData);
             } catch (error) {
-                console.error('Error parsing stored user:', error);
-                localStorage.removeItem('token');
+                console.error('Error fetching backlog:', error);
             }
+        };
+
+        if (user) {
+            fetchBacklog();
         }
-    }, []);
+    }, [user]);
 
     // Remove game from backlog
     const handleDeleteGame = (gameId) => {
@@ -77,18 +64,9 @@ const BacklogPage = () => {
     };
 
     const handleConfirmAction = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.error('No token found, please log in.');
-            setDialogOpen(false);
-            return;
-        }
-
         if (dialogAction.type === 'delete') {
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
             try {
-                await axios.delete(`http://localhost:8080/games/remove-from-backlog/${dialogAction.gameId}`, config);
+                await authService.getAxiosInstance().delete(`/games/remove-from-backlog/${dialogAction.gameId}`);
                 console.log('Game removed from backlog:', dialogAction.gameId);
                 setGames(prevGames => prevGames.filter(game => game.id !== dialogAction.gameId));
             } catch (error) {
@@ -100,25 +78,20 @@ const BacklogPage = () => {
     };
 
     // Update game status
-    const handleStatusChange = (gameId, newStatus) => {
-        const token = localStorage.getItem('token');
-        const config = {
-            params: { status: newStatus },
-            headers: { Authorization: `Bearer ${token}` }
-        };
-
+    const handleStatusChange = async (gameId, newStatus) => {
         // Find the game to get the old status
         const game = games.find(game => game.id === gameId);
         const oldStatus = game ? game.status : 'Unknown';
 
-        axios.patch(`http://localhost:8080/games/${gameId}/status`, { status: newStatus }, config)
-            .then(() => {
-                console.log(`Status updated for Game ID ${gameId} (${game.title}): ${oldStatus} -> ${newStatus}`);
-                setGames(prevGames => prevGames.map(game =>
-                    game.id === gameId ? { ...game, status: newStatus } : game
-                ));
-            })
-            .catch(error => console.error('Error updating status:', error));
+        try {
+            await authService.getAxiosInstance().patch(`/games/${gameId}/status`, null, {
+                params: { status: newStatus }
+            });
+            setGames(prevGames => prevGames.map(game => game.id === gameId ? { ...game, status: newStatus } : game));
+            console.log(`Status updated for Game ID ${gameId} (${game.title}): ${oldStatus} -> ${newStatus}`);
+        } catch (error) {
+            console.error('Error updating status:', error);
+        }
     };
 
     const handleDetailNavigation = (gameId) => {

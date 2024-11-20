@@ -4,11 +4,10 @@ import MuiCard from '@mui/material/Card';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 import { MenuItem, Select } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import getSignUpTheme from '../theme/getSignUpTheme.js';
 import TemplateFrame from '../components/TemplateFrame.js';
 import { useThemeContext } from '../components/ThemeContext';
-import { jwtDecode } from 'jwt-decode';
+import authService from '../services/AuthService.js';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -44,7 +43,7 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
   }),
 }));
 
-export default function SignUp({ setUser}) {
+export default function SignUp({ setUser }) {
   const { mode, toggleColorMode } = useThemeContext();
   const SignUpTheme = createTheme(getSignUpTheme(mode));
   const [nameError, setNameError] = useState(false);
@@ -107,15 +106,14 @@ export default function SignUp({ setUser}) {
     };
 
     try {
-      const response = await axios.post('http://localhost:8080/users/register', user);
+      const response = await authService.getAxiosInstance().post('/users/register', user);
       const { jwt: token } = response.data; // Extract the token from the jwt key
       if (!token) {
         throw new Error('Token not found in response');
       }
       console.log('User registered successfully:', token);
-      localStorage.setItem('token', token);
-      const decodedUser = jwtDecode(token);
-      setUser(decodedUser); // Update the user state
+      authService.setToken(token);
+      setUser(authService.getUser()); // Update the user state
       navigate('/');
     } catch (error) {
       if (error.response) {
