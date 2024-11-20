@@ -8,6 +8,7 @@ import axios from 'axios';
 import getSignUpTheme from '../theme/getSignUpTheme.js';
 import TemplateFrame from '../components/TemplateFrame.js';
 import { useThemeContext } from '../components/ThemeContext';
+import { jwtDecode } from 'jwt-decode';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -43,7 +44,7 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
   }),
 }));
 
-export default function SignUp() {
+export default function SignUp({ setUser}) {
   const { mode, toggleColorMode } = useThemeContext();
   const SignUpTheme = createTheme(getSignUpTheme(mode));
   const [nameError, setNameError] = useState(false);
@@ -113,6 +114,8 @@ export default function SignUp() {
       }
       console.log('User registered successfully:', token);
       localStorage.setItem('token', token);
+      const decodedUser = jwtDecode(token);
+      setUser(decodedUser); // Update the user state
       navigate('/');
     } catch (error) {
       if (error.response) {
