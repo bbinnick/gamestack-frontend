@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Stack, Container, Typography, Box, Grid2, Card, CardContent, Tooltip } from '@mui/material';
+import {
+    TextField, Button, Stack, Container, Typography,
+    Box, Grid2, Card, CardContent, Tooltip,
+    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
+} from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import TemplateFrame from '../components/TemplateFrame';
+import { useNavigate } from 'react-router-dom';
 import { useThemeContext } from '../components/ThemeContext';
+import authService from '../services/AuthService';
 
 const AdminGameManagement = () => {
     const { mode, toggleColorMode } = useThemeContext();
@@ -16,36 +20,23 @@ const AdminGameManagement = () => {
     });
     const [imageFile, setImageFile] = useState(null);
     const [games, setGames] = useState([]);
-    const [user, setUser] = useState(null);
     const [editingGame, setEditingGame] = useState(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogAction, setDialogAction] = useState(null);
+    const user = authService.getUser();
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                const decodedUser = jwtDecode(token);
-                setUser(decodedUser ? decodedUser : null);
-            } catch (error) {
-                console.error('Error parsing stored user:', error);
-                localStorage.removeItem('token');
-            }
+        if (user) {
+            fetchGames();
+        } else {
+            navigate('/log-in');
         }
-        fetchGames();
-    }, []);
+    }, [user, navigate]);
 
     const fetchGames = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.error('No token found, please log in.');
-            return;
-        }
-
         try {
-            const response = await axios.get('http://localhost:8080/games/all-with-users', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            const response = await authService.getAxiosInstance().get('/games/all-with-users');
             setGames(response.data);
         } catch (error) {
             console.error('Error fetching games:', error);
@@ -62,31 +53,14 @@ const AdminGameManagement = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setDialogAction('add');
+        setDialogOpen(true);
+    };
 
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.error('No token found, please log in.');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('game', new Blob([JSON.stringify(game)], { type: 'application/json' }));
-        if (imageFile) {
-            formData.append('image', imageFile);
-        }
-
-        try {
-            const response = await axios.post('http://localhost:8080/games/add', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            console.log('Game added:', response.data);
-            fetchGames(); // Refresh the list of games
-        } catch (error) {
-            console.error('Error adding game:', error);
-        }
+    const handleUpdateGame = async (e) => {
+        e.preventDefault();
+        setDialogAction('update');
+        setDialogOpen(true);
     };
 
     const handleEditGame = (game) => {
@@ -98,60 +72,81 @@ const AdminGameManagement = () => {
         });
     };
 
-    const handleUpdateGame = async (e) => {
-        e.preventDefault();
-
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.error('No token found, please log in.');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('game', new Blob([JSON.stringify(game)], { type: 'application/json' }));
-        if (imageFile) {
-            formData.append('image', imageFile);
-        }
-
-        try {
-            const response = await axios.patch(`http://localhost:8080/games/${editingGame.id}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            console.log('Game updated:', response.data);
-            fetchGames(); // Refresh the list of games
-            setEditingGame(null);
-            setGame({
-                title: '',
-                platform: '',
-                genre: ''
-            });
-            setImageFile(null); // Reset the image file
-        } catch (error) {
-            console.error('Error updating game:', error);
-        }
+    const handleDeleteGame = (gameId) => {
+        setDialogAction({ type: 'delete', gameId });
+        setDialogOpen(true);
     };
 
-    const handleDeleteGame = async (gameId) => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.error('No token found, please log in.');
+    const handleConfirmAction = async () => {
+        if (!user) {
+            console.error('No user found, please log in.');
+            setDialogOpen(false);
             return;
         }
 
-        try {
-            await axios.delete(`http://localhost:8080/games/${gameId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            console.log('Game deleted:', gameId);
-            fetchGames(); // Refresh the list of games
-        } catch (error) {
-            console.error('Error deleting game:', error);
+        if (dialogAction === 'add') {
+            const formData = new FormData();
+            formData.append('game', new Blob([JSON.stringify(game)], { type: 'application/json' }));
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            try {
+                const response = await authService.getAxiosInstance().post('/games/add', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                console.log('Game added:', response.data);
+                fetchGames();
+                setGame({
+                    title: '',
+                    platform: '',
+                    genre: ''
+                });
+                setImageFile(null);
+            } catch (error) {
+                console.error('Error adding game:', error);
+            }
+        } else if (dialogAction === 'update') {
+            const formData = new FormData();
+            formData.append('game', new Blob([JSON.stringify(game)], { type: 'application/json' }));
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            try {
+                const response = await authService.getAxiosInstance().patch(`/games/${editingGame.id}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                console.log('Game updated:', response.data);
+                fetchGames();
+                setEditingGame(null);
+                setGame({
+                    title: '',
+                    platform: '',
+                    genre: ''
+                });
+                setImageFile(null);
+            } catch (error) {
+                console.error('Error updating game:', error);
+            }
+        } else if (dialogAction.type === 'delete') {
+            try {
+                await authService.getAxiosInstance().delete(`/games/${dialogAction.gameId}`);
+                console.log('Game deleted:', dialogAction.gameId);
+                fetchGames();
+            } catch (error) {
+                console.error('Error deleting game:', error);
+            }
         }
+        setDialogOpen(false);
+    };
+
+    const handleDetailNavigation = (gameId) => {
+        navigate(`/games/${gameId}`);
     };
 
     const columns = [
@@ -164,7 +159,7 @@ const AdminGameManagement = () => {
                     <img
                         src={`http://localhost:8080/uploads/${params.row.imageUrl}`}
                         alt={params.row.title}
-                        onError={(e) => { e.target.style.display = 'none'; }}  // Hide if the image URL is broken
+                        onError={(e) => { e.target.style.display = 'none'; }}
                         style={{ width: '100px', height: 'auto', borderRadius: '5px' }}
                     />
                 ) : (
@@ -174,7 +169,19 @@ const AdminGameManagement = () => {
                 );
             },
         },
-        { field: 'title', headerName: 'Title', width: 200 },
+        {
+            field: 'title',
+            headerName: 'Title',
+            width: 200,
+            renderCell: (params) => (
+                <Button
+                    color="primary"
+                    onClick={() => handleDetailNavigation(params.row.id)}
+                >
+                    {params.row.title}
+                </Button>
+            ),
+        },
         { field: 'genre', headerName: 'Genre', width: 150 },
         { field: 'platform', headerName: 'Platform', width: 150 },
         {
@@ -185,12 +192,15 @@ const AdminGameManagement = () => {
                 <Box>
                     <Button
                         color="primary"
+                        variant="contained"
                         onClick={() => handleEditGame(params.row)}
+                        sx={{ mr: 1 }}
                     >
                         Edit
                     </Button>
                     <Button
                         color="error"
+                        variant="contained"
                         onClick={() => handleDeleteGame(params.row.id)}
                     >
                         Delete
@@ -200,7 +210,7 @@ const AdminGameManagement = () => {
         },
     ];
 
-    const paginationModel = { page: 0, pageSize: 10 };
+    const paginationModel = { page: 0, pageSize: 5 };
 
     return (
         <TemplateFrame
@@ -261,7 +271,7 @@ const AdminGameManagement = () => {
                             rows={games}
                             columns={columns}
                             initialState={{ pagination: { paginationModel } }}
-                            pageSizeOptions={[10, 20, 50]}
+                            pageSizeOptions={[5, 10, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
                         />
                     </Box>
@@ -311,6 +321,33 @@ const AdminGameManagement = () => {
                     </Grid2>
                 </Box>
             </Container>
+            <Dialog
+                open={dialogOpen}
+                onClose={() => setDialogOpen(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    {dialogAction === 'add' ? 'Confirm Add' : dialogAction === 'update' ? 'Confirm Update' : 'Confirm Delete'}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        {dialogAction === 'add'
+                            ? 'Are you sure you want to add this game?'
+                            : dialogAction === 'update'
+                                ? 'Are you sure you want to update this game?'
+                                : 'Are you sure you want to delete this game?'}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDialogOpen(false)} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleConfirmAction} color="primary" variant="contained" autoFocus>
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </TemplateFrame>
     );
 };

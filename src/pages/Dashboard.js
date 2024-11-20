@@ -7,39 +7,21 @@ import Footer from '../components/Footer';
 import TemplateFrame from '../components/TemplateFrame';
 import getDashboardTheme from '../theme/getDashboardTheme';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
 import { useThemeContext } from '../components/ThemeContext';
-import axios from 'axios';
+import authService from '../services/AuthService';
 
-export default function Dashboard() {
+export default function Dashboard({ user, handleLogout }) {
     const { mode, toggleColorMode } = useThemeContext();
     const DashboardTheme = createTheme(getDashboardTheme(mode));
-    const [user, setUser] = useState(null);
     const [games, setGames] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                const decodedUser = jwtDecode(token);
-                console.log('Decoded token:', decodedUser);
-                setUser(decodedUser ? decodedUser : null);
-            } catch (error) {
-                console.error('Error parsing stored user:', error);
-                localStorage.removeItem('token');
-            }
-        }
-        
         const fetchGames = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/games/all', {
-                    headers: token ? { Authorization: `Bearer ${token}` } : {}
-                });
+                const response = await authService.getAxiosInstance().get('/games/all');
                 const gamesData = response.data.map(game => {
-                    const imageUrl = game.imageUrl
-                        ? `http://localhost:8080/uploads/${game.imageUrl}`
-                        : null;
+                    const imageUrl = game.imageUrl ? `http://localhost:8080/uploads/${game.imageUrl}` : null;
                     return { ...game, imageUrl };
                 });
                 setGames(gamesData);
@@ -51,13 +33,6 @@ export default function Dashboard() {
         fetchGames();
     }, []);
 
-    const handleLogout = () => {
-        console.log(`${user.username} logged out`);
-        localStorage.removeItem('token');
-        setUser(null);
-        navigate('/log-in');
-    };
-
     return (
         <TemplateFrame
             mode={mode}
@@ -66,7 +41,7 @@ export default function Dashboard() {
         >
             <ThemeProvider theme={DashboardTheme}>
                 <CssBaseline enableColorScheme />
-                <AppAppBar user={user} handleLogout={handleLogout} />
+                <AppAppBar user={user} handleLogout={() => handleLogout(navigate)} />
                 <Container
                     maxWidth="lg"
                     component="main"

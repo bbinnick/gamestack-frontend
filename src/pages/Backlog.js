@@ -13,86 +13,91 @@ import {
     Select,
     MenuItem,
     Grid2,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle
 } from '@mui/material';
+import Rating from '@mui/material/Rating';
+import StarIcon from '@mui/icons-material/Star';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import TemplateFrame from '../components/TemplateFrame';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 import { useThemeContext } from '../components/ThemeContext';
+import authService from '../services/AuthService';
 
 const BacklogPage = () => {
     const { mode, toggleColorMode } = useThemeContext();
     const [games, setGames] = useState([]);
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
-    const [user, setUser] = useState(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogAction, setDialogAction] = useState(null);
+    const user = authService.getUser();
+    const navigate = useNavigate();
 
     // Fetch user's game backlog
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
+        const fetchBacklog = async () => {
             try {
-                const decodedUser = jwtDecode(token);
-                setUser(decodedUser ? decodedUser : null);
-            } catch (error) {
-                console.error('Error parsing stored user:', error);
-                localStorage.removeItem('token');
-            }
-            const config = {
-                headers: { Authorization: `Bearer ${token}` }
-            };
-
-            axios.get('http://localhost:8080/games/backlog', config)
-                .then(response => {
-                    const gamesData = response.data.map(game => {
-                        // Needs to be updated to handle multiple user games and grab correct status
-                        const userGame = game.userGames[0] || {};
-                        const imageUrl = game.imageUrl
-                            ? `http://localhost:8080/uploads/${game.imageUrl}`
-                            : null;
-                        return { ...game, imageUrl, status: userGame.status, addedOn: userGame.addedOn };
-                    });
-                    setGames(gamesData);
-                })
-                .catch(error => {
-                    console.error('Error fetching backlog:', error);
+                const response = await authService.getAxiosInstance().get('/games/backlog');
+                const gamesData = response.data.map(game => {
+                    const userGame = game.userGames.find(ug => ug.userId === user.user_id) || {};
+                    const imageUrl = game.imageUrl ? `http://localhost:8080/uploads/${game.imageUrl}` : null;
+                    return { ...game, imageUrl, status: userGame.status, addedOn: userGame.addedOn, rating: userGame.rating || 0 };
                 });
+                setGames(gamesData);
+            } catch (error) {
+                console.error('Error fetching backlog:', error);
+            }
+        };
+
+        if (user) {
+            fetchBacklog();
         }
-    }, []);
+    }, [user]);
 
-    // Delete game from backlog
+    // Remove game from backlog
     const handleDeleteGame = (gameId) => {
-        const token = localStorage.getItem('token');
-        const config = { headers: { Authorization: `Bearer ${token}` } };
+        setDialogAction({ type: 'delete', gameId });
+        setDialogOpen(true);
+    };
 
-        axios.delete(`http://localhost:8080/games/remove-from-backlog/${gameId}`, config)
-            .then(() => {
-                console.log('Game removed from backlog:', gameId);
-                setGames(prevGames => prevGames.filter(game => game.id !== gameId));
-            })
-            .catch(error => console.error('Error removing game from backlog:', error));
+    const handleConfirmAction = async () => {
+        if (dialogAction.type === 'delete') {
+            try {
+                await authService.getAxiosInstance().delete(`/games/remove-from-backlog/${dialogAction.gameId}`);
+                console.log('Game removed from backlog:', dialogAction.gameId);
+                setGames(prevGames => prevGames.filter(game => game.id !== dialogAction.gameId));
+            } catch (error) {
+                console.error('Error removing game from backlog:', error);
+            }
+        }
+
+        setDialogOpen(false);
     };
 
     // Update game status
-    const handleStatusChange = (gameId, newStatus) => {
-        const token = localStorage.getItem('token');
-        const config = {
-            params: { status: newStatus },
-            headers: { Authorization: `Bearer ${token}` }
-        };
-
+    const handleStatusChange = async (gameId, newStatus) => {
         // Find the game to get the old status
         const game = games.find(game => game.id === gameId);
         const oldStatus = game ? game.status : 'Unknown';
 
-        axios.patch(`http://localhost:8080/games/${gameId}/status`, { status: newStatus }, config)
-            .then(() => {
-                console.log(`Status updated for Game ID ${gameId} (${game.title}): ${oldStatus} -> ${newStatus}`);
-                setGames(prevGames => prevGames.map(game =>
-                    game.id === gameId ? { ...game, status: newStatus } : game
-                ));
-            })
-            .catch(error => console.error('Error updating status:', error));
+        try {
+            await authService.getAxiosInstance().patch(`/games/${gameId}/status`, null, {
+                params: { status: newStatus }
+            });
+            setGames(prevGames => prevGames.map(game => game.id === gameId ? { ...game, status: newStatus } : game));
+            console.log(`Status updated for Game ID ${gameId} (${game.title}): ${oldStatus} -> ${newStatus}`);
+        } catch (error) {
+            console.error('Error updating status:', error);
+        }
     };
+
+    const handleDetailNavigation = (gameId) => {
+        navigate(`/games/${gameId}`);
+    };
+
     // Columns for DataGrid
     const columns = [
         {
@@ -104,7 +109,7 @@ const BacklogPage = () => {
                     <img
                         src={params.row.imageUrl}
                         alt={params.row.title}
-                        onError={(e) => { e.target.style.display = 'none'; }}  // Hide if the image URL is broken
+                        onError={(e) => { e.target.style.display = 'none'; }}
                         style={{ width: '100px', height: 'auto', borderRadius: '5px' }}
                     />
                 ) : (
@@ -114,7 +119,19 @@ const BacklogPage = () => {
                 );
             },
         },
-        { field: 'title', headerName: 'Title', width: 200 },
+        {
+            field: 'title',
+            headerName: 'Title',
+            width: 200,
+            renderCell: (params) => (
+                <Button
+                    color="primary"
+                    onClick={() => handleDetailNavigation(params.row.id)}
+                >
+                    {params.row.title}
+                </Button>
+            ),
+        },
         { field: 'genre', headerName: 'Genre', width: 150 },
         { field: 'platform', headerName: 'Platform', width: 150 },
         {
@@ -134,6 +151,20 @@ const BacklogPage = () => {
                 </Select>
             ),
         },
+        {
+            field: 'rating',
+            headerName: 'Rating',
+            width: 150,
+            renderCell: (params) => (
+                <Rating
+                    name={`rating-${params.row.id}`}
+                    value={params.row.rating}
+                    precision={0.5}
+                    readOnly
+                    emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                />
+            ),
+        },
         { field: 'addedOn', headerName: 'Added On', width: 150 },
         {
             field: 'actions',
@@ -142,6 +173,7 @@ const BacklogPage = () => {
             renderCell: (params) => (
                 <Button
                     color="error"
+                    variant="contained"
                     onClick={() => handleDeleteGame(params.row.id)}
                 >
                     Remove
@@ -154,7 +186,7 @@ const BacklogPage = () => {
         setViewMode(viewMode === 'table' ? 'cards' : 'table');
     };
 
-    const paginationModel = { page: 0, pageSize: 10 };
+    const paginationModel = { page: 0, pageSize: 5 };
 
     return (
         <TemplateFrame
@@ -178,7 +210,7 @@ const BacklogPage = () => {
                             rows={games}
                             columns={columns}
                             initialState={{ pagination: { paginationModel } }}
-                            pageSizeOptions={[10, 20, 50]}
+                            pageSizeOptions={[5, 10, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
                         />
                     </Box>
@@ -186,7 +218,7 @@ const BacklogPage = () => {
                     <Grid2 container spacing={4} sx={{ mt: 4 }}>
                         {games.map(game => (
                             <Grid2 key={game.id} xs={12} sm={6} md={4}>
-                                <Card sx={{ maxWidth: 345 }}>
+                                <Card sx={{ maxWidth: 345 }} onClick={() => handleDetailNavigation(game.id)}>
                                     {game.imageUrl ? (
                                         <CardMedia
                                             component="img"
@@ -215,6 +247,13 @@ const BacklogPage = () => {
                                         <Typography variant="body2" color="text.secondary">
                                             Added On: {game.addedOn}
                                         </Typography>
+                                        <Rating
+                                            name={`rating-${game.id}`}
+                                            value={game.rating}
+                                            precision={0.5}
+                                            readOnly
+                                            emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                                        />
                                     </CardContent>
                                 </Card>
                             </Grid2>
@@ -222,6 +261,29 @@ const BacklogPage = () => {
                     </Grid2>
                 )}
             </Container>
+            <Dialog
+                open={dialogOpen}
+                onClose={() => setDialogOpen(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    Confirm Delete
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Are you sure you want to remove this game from your backlog?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDialogOpen(false)} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleConfirmAction} color="primary" variant="contained" autoFocus>
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </TemplateFrame>
     );
 };
