@@ -34,10 +34,14 @@ export default function Dashboard({ user, handleLogout }) {
 
         const fetchPopularGames = async () => {
             try {
-                const response = await authService.getAxiosInstance().get('/igdb/games/hyped', {
+                const response = await authService.getAxiosInstance().get('/igdb/games/popular', {
                     params: { limit: 10 }
                 });
-                setPopularGames(response.data);
+                const popularGamesData = response.data.map(igdbGame => {
+                    const imageUrl = igdbGame.cover ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${igdbGame.cover.image_id}.jpg` : null;
+                    return { ...igdbGame, cover: { ...igdbGame.cover, url: imageUrl } };
+                });
+                setPopularGames(popularGamesData);
             } catch (error) {
                 console.error('Error fetching popular games:', error);
             }
@@ -46,9 +50,13 @@ export default function Dashboard({ user, handleLogout }) {
         const fetchNewReleases = async () => {
             try {
                 const response = await authService.getAxiosInstance().get('/igdb/games/new-releases', {
-                    params: { fields: 'id,name,cover.url', limit: 10 }
+                    params: { limit: 10 }
                 });
-                setNewReleases(response.data);
+                const newReleasesData = response.data.map(igdbGame => {
+                    const imageUrl = igdbGame.cover ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${igdbGame.cover.image_id}.jpg` : null;
+                    return { ...igdbGame, cover: { ...igdbGame.cover, url: imageUrl } };
+                });
+                setNewReleases(newReleasesData);
             } catch (error) {
                 console.error('Error fetching new releases:', error);
             }

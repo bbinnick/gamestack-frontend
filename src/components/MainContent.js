@@ -139,7 +139,7 @@ export default function MainContent({ games }) {
   };
 
   const handleCardClick = (gameId) => {
-    navigate(`/games/${gameId}`);
+    navigate(`/games/local/${gameId}`);
   };
 
   return (
@@ -243,15 +243,12 @@ export default function MainContent({ games }) {
                 </Box>
               )}
               <StyledCardContent>
-                <Typography gutterBottom variant="caption" component="div">
-                  Genre: {game.genre}
-                </Typography>
                 <Typography gutterBottom variant="h6" component="div">
                   {game.title}
                 </Typography>
-                <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                  Platform: {game.platform}
-                </StyledTypography>
+                <Typography gutterBottom variant="caption" component="div">
+                  Genre: {game.genre}
+                </Typography>
               </StyledCardContent>
               {/* <Author authors={cardData[5].authors} /> */}
             </StyledCard>

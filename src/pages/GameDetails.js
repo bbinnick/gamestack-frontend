@@ -26,18 +26,22 @@ function getLabelText(value) {
 
 const GameDetails = () => {
   const { mode, toggleColorMode } = useThemeContext();
-  const { gameId } = useParams();
+  const { gameId, igdbGameId } = useParams();
   const [game, setGame] = useState(null);
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(-1);
   const user = authService.getUser();
   const navigate = useNavigate();
 
-
   useEffect(() => {
     const fetchGameDetails = async () => {
       try {
-        const response = await authService.getAxiosInstance().get(`/games/${gameId}`);
+        let response;
+        if (igdbGameId) {
+          response = await authService.getAxiosInstance().get(`/igdb/games/details/${igdbGameId}`);
+        } else {
+          response = await authService.getAxiosInstance().get(`/games/${gameId}`);
+        }
         setGame(response.data);
       } catch (error) {
         console.error('Error fetching game details:', error);
@@ -46,7 +50,8 @@ const GameDetails = () => {
 
     const fetchUserRating = async () => {
       try {
-        const response = await authService.getAxiosInstance().get(`/games/${gameId}/user-rating`);
+        const id = igdbGameId || gameId;
+        const response = await authService.getAxiosInstance().get(`/games/${id}/user-rating`);
         setRating(response.data.rating || 0);
       } catch (error) {
         console.error('Error fetching user rating:', error);
@@ -58,7 +63,7 @@ const GameDetails = () => {
     }
 
     fetchGameDetails();
-  }, [gameId, user]);
+  }, [gameId, igdbGameId, user]);
 
   const handleAddToBacklog = async () => {
     if (!user) {
@@ -67,8 +72,9 @@ const GameDetails = () => {
     }
 
     try {
-      await authService.getAxiosInstance().post(`/games/add-to-backlog/${gameId}`);
-      console.log('Game added to backlog:', gameId);
+      const id = igdbGameId || gameId;
+      await authService.getAxiosInstance().post(`/games/add-to-backlog/${id}`);
+      console.log('Game added to backlog:', id);
     } catch (error) {
       console.error('Error adding game to backlog:', error);
     }
@@ -83,7 +89,8 @@ const GameDetails = () => {
     setRating(newValue);
 
     try {
-      await authService.getAxiosInstance().post(`/games/${gameId}/rate`, null, {
+      const id = igdbGameId || gameId;
+      await authService.getAxiosInstance().post(`/games/${id}/rate`, null, {
         params: { rating: newValue }
       });
       console.log('Rating submitted:', newValue);
@@ -96,20 +103,26 @@ const GameDetails = () => {
     return <div>Loading...</div>;
   }
 
+  const platforms = game.platforms ? game.platforms.join(', ') : (game.platform ? game.platform : 'Unknown Platform');
+  const genres = game.genres ? game.genres.join(', ') : (game.genre ? game.genre : 'Unknown Genre');
+  const igdbRating = game.rating ? game.rating.toFixed(2) : 'N/A';
+  const imageUrl = game.imageUrl ? `http://localhost:8080/uploads/${game.imageUrl}` : (game.coverUrl ? `https://images.igdb.com/igdb/image/upload/t_720p/${game.coverUrl}.jpg` : 'https://via.placeholder.com/800x450');
+
   return (
     <TemplateFrame mode={mode} toggleColorMode={toggleColorMode} user={user}>
       <Container>
         <Typography variant="h4" gutterBottom>
-          {game.title}
+          {game.title || game.name || 'Unknown Title'}
         </Typography>
         <CardMedia
           component="img"
-          alt={game.title}
-          image={game.imageUrl ? `http://localhost:8080/uploads/${game.imageUrl}` : 'https://via.placeholder.com/800x450'}
+          alt={game.title || game.name || 'Unknown Title'}
+          image={imageUrl}
           sx={{
             width: '100%',
-            height: 400,
-            objectFit: 'cover',
+            height: 'auto',
+            maxHeight: 700,
+            objectFit: 'contain',
             borderBottom: '1px solid',
             borderColor: 'divider',
           }}
@@ -131,11 +144,11 @@ const GameDetails = () => {
               <Box sx={{ ml: 2 }}>{labels[hover !== -1 ? hover : rating]}</Box>
             )}
           </Box>
-          {/* <Typography variant="h6">Release Date: {game.releaseDate}</Typography> */}
-          <Typography variant="h6">Platform: {game.platform}</Typography>
-          <Typography variant="h6">Genre: {game.genre}</Typography>
+          <Typography variant="h6">Platform: {platforms}</Typography>
+          <Typography variant="h6">Genre: {genres}</Typography>
+          <Typography variant="h6">IGDB Rating: {igdbRating}</Typography>
           <Typography variant="body1" sx={{ mt: 2 }}>
-            {game.description}
+            {game.summary || 'No description available.'}
           </Typography>
           <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleAddToBacklog}>
             Add to Backlog
