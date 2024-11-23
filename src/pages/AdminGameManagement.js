@@ -15,8 +15,8 @@ const AdminGameManagement = () => {
     const { mode, toggleColorMode } = useThemeContext();
     const [game, setGame] = useState({
         title: '',
-        platform: '',
-        genre: ''
+        platforms: [],
+        genres: []
     });
     const [imageFile, setImageFile] = useState(null);
     const [games, setGames] = useState([]);
@@ -44,7 +44,41 @@ const AdminGameManagement = () => {
     };
 
     const handleChange = (e) => {
-        setGame({ ...game, [e.target.name]: e.target.value || '' });
+        const { name, value } = e.target;
+        setGame(prevGame => ({
+            ...prevGame,
+            [name]: value
+        }));
+    };
+
+    const handleArrayChange = (e, index, field) => {
+        const { value } = e.target;
+        setGame(prevGame => {
+            const updatedArray = [...prevGame[field]];
+            updatedArray[index] = value;
+            return {
+                ...prevGame,
+                [field]: updatedArray
+            };
+        });
+    };
+
+    const handleAddItem = (field) => {
+        setGame(prevGame => ({
+            ...prevGame,
+            [field]: [...prevGame[field], '']
+        }));
+    };
+
+    const handleRemoveItem = (index, field) => {
+        setGame(prevGame => {
+            const updatedArray = [...prevGame[field]];
+            updatedArray.splice(index, 1);
+            return {
+                ...prevGame,
+                [field]: updatedArray
+            };
+        });
     };
 
     const handleFileChange = (e) => {
@@ -67,8 +101,8 @@ const AdminGameManagement = () => {
         setEditingGame(game);
         setGame({
             title: game.title || '',
-            platform: game.platform || '',
-            genre: game.genre || ''
+            platforms: game.platforms || [],
+            genres: game.genres || []
         });
     };
 
@@ -101,8 +135,8 @@ const AdminGameManagement = () => {
                 fetchGames();
                 setGame({
                     title: '',
-                    platform: '',
-                    genre: ''
+                    platforms: [],
+                    genres: []
                 });
                 setImageFile(null);
             } catch (error) {
@@ -126,8 +160,8 @@ const AdminGameManagement = () => {
                 setEditingGame(null);
                 setGame({
                     title: '',
-                    platform: '',
-                    genre: ''
+                    platforms: [],
+                    genres: []
                 });
                 setImageFile(null);
             } catch (error) {
@@ -146,7 +180,7 @@ const AdminGameManagement = () => {
     };
 
     const handleDetailNavigation = (gameId) => {
-        navigate(`/games/${gameId}`);
+        navigate(`/games/local/${gameId}`);
     };
 
     const columns = [
@@ -182,8 +216,8 @@ const AdminGameManagement = () => {
                 </Button>
             ),
         },
-        { field: 'genre', headerName: 'Genre', width: 150 },
-        { field: 'platform', headerName: 'Platform', width: 150 },
+        { field: 'genres', headerName: 'Genres', width: 150 },
+        { field: 'platforms', headerName: 'Platforms', width: 150 },
         {
             field: 'actions',
             headerName: 'Actions',
@@ -232,20 +266,34 @@ const AdminGameManagement = () => {
                             required
                             fullWidth
                         />
-                        <TextField
-                            label="Platform"
-                            name="platform"
-                            value={game.platform}
-                            onChange={handleChange}
-                            fullWidth
-                        />
-                        <TextField
-                            label="Genre"
-                            name="genre"
-                            value={game.genre}
-                            onChange={handleChange}
-                            fullWidth
-                        />
+                        <div>
+                            <Typography variant="h6">Platforms</Typography>
+                            {game.platforms.map((platform, index) => (
+                                <div key={index}>
+                                    <TextField
+                                        value={platform}
+                                        onChange={(e) => handleArrayChange(e, index, 'platforms')}
+                                        fullWidth
+                                    />
+                                    <Button variant='contained' color='warning' onClick={() => handleRemoveItem(index, 'platforms')} sx={{ mt: 1, mb: 1 }}>Remove</Button>
+                                </div>
+                            ))}
+                            <Button variant='contained' color='secondary' onClick={() => handleAddItem('platforms')}>Add Platform</Button>
+                        </div>
+                        <div>
+                            <Typography variant="h6">Genres</Typography>
+                            {game.genres.map((genre, index) => (
+                                <div key={index}>
+                                    <TextField
+                                        value={genre}
+                                        onChange={(e) => handleArrayChange(e, index, 'genres')}
+                                        fullWidth
+                                    />
+                                    <Button variant='contained' color='warning' onClick={() => handleRemoveItem(index, 'genres')} sx={{ mt: 1, mb: 1 }}>Remove</Button>
+                                </div>
+                            ))}
+                            <Button variant='contained' color='secondary' onClick={() => handleAddItem('genres')}>Add Genre</Button>
+                        </div>
                         <label htmlFor="upload-button">
                             <input
                                 id="upload-button"

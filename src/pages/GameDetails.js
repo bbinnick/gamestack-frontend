@@ -103,8 +103,8 @@ const GameDetails = () => {
     return <div>Loading...</div>;
   }
 
-  const platforms = game.platforms ? game.platforms.join(', ') : (game.platform ? game.platform : 'Unknown Platform');
-  const genres = game.genres ? game.genres.join(', ') : (game.genre ? game.genre : 'Unknown Genre');
+  const platforms = game.platforms ? game.platforms.join(', ') : 'Unknown Platform';
+  const genres = game.genres ? game.genres.join(', ') : 'Unknown Genre';
   const igdbRating = game.rating ? game.rating.toFixed(2) : 'N/A';
   const imageUrl = game.imageUrl ? `http://localhost:8080/uploads/${game.imageUrl}` : (game.coverUrl ? `https://images.igdb.com/igdb/image/upload/t_720p/${game.coverUrl}.jpg` : 'https://via.placeholder.com/800x450');
 
@@ -144,8 +144,8 @@ const GameDetails = () => {
               <Box sx={{ ml: 2 }}>{labels[hover !== -1 ? hover : rating]}</Box>
             )}
           </Box>
-          <Typography variant="h6">Platform: {platforms}</Typography>
-          <Typography variant="h6">Genre: {genres}</Typography>
+          <Typography variant="h6">Platforms: {platforms}</Typography>
+          <Typography variant="h6">Genres: {genres}</Typography>
           <Typography variant="h6">IGDB Rating: {igdbRating}</Typography>
           <Typography variant="body1" sx={{ mt: 2 }}>
             {game.summary || 'No description available.'}

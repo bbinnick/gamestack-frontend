@@ -95,7 +95,7 @@ const BacklogPage = () => {
     };
 
     const handleDetailNavigation = (gameId) => {
-        navigate(`/games/${gameId}`);
+        navigate(`/games/local/${gameId}`);
     };
 
     // Columns for DataGrid
@@ -132,8 +132,8 @@ const BacklogPage = () => {
                 </Button>
             ),
         },
-        { field: 'genre', headerName: 'Genre', width: 150 },
-        { field: 'platform', headerName: 'Platform', width: 150 },
+        { field: 'genres', headerName: 'Genres', width: 150 },
+        { field: 'platforms', headerName: 'Platforms', width: 150 },
         {
             field: 'status',
             headerName: 'Status',
@@ -236,10 +236,10 @@ const BacklogPage = () => {
                                             {game.title}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            Genre: {game.genre}
+                                            Genres: {game.genres.join(', ')}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            Platform: {game.platform}
+                                            Platforms: {game.platforms.join(', ')}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
                                             Status: {game.status}

@@ -45,14 +45,6 @@ const StyledCardContent = styled(CardContent)({
   },
 });
 
-const StyledTypography = styled(Typography)({
-  display: '-webkit-box',
-  WebkitBoxOrient: 'vertical',
-  WebkitLineClamp: 2,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-});
-
 // Author component to display the author(s) of the game if i decide to add it
 function Author({ authors }) {
   return (
