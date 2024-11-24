@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import {
-    TextField, Button, Stack, Container, Typography,
-    Box, Tooltip,
-    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
+    Button, Container, Typography, Box, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import TemplateFrame from '../components/TemplateFrame';
 import { useNavigate } from 'react-router-dom';
 import { useThemeContext } from '../components/ThemeContext';
 import authService from '../services/AuthService';
+import GameForm from '../components/CreateGameForm';
+import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
+import Tooltip from '@mui/material/Tooltip';
 
 const AdminGameManagement = () => {
     const { mode, toggleColorMode } = useThemeContext();
@@ -53,60 +53,12 @@ const AdminGameManagement = () => {
     const fetchUsers = async () => {
         try {
             const response = await authService.getAxiosInstance().get('/users/all');
-            const usersData = response.data.filter(u => u.id !== user.user_id); // Filter out the current user
+            const usersData = response.data.filter(u => u.id !== user.user_id);
             //response.data.filter(u => u.role !== 'ADMIN'); // Filter out the admin user
             setUsers(usersData);
         } catch (error) {
             console.error('Error fetching users:', error);
         }
-    };
-
-    const handleDeleteUser = (userId) => {
-        setSelectedUserId(userId);
-        setDialogAction('deleteUser');
-        setDialogOpen(true);
-    };
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setGame(prevGame => ({
-            ...prevGame,
-            [name]: value
-        }));
-    };
-
-    const handleArrayChange = (e, index, field) => {
-        const { value } = e.target;
-        setGame(prevGame => {
-            const updatedArray = [...prevGame[field]];
-            updatedArray[index] = value;
-            return {
-                ...prevGame,
-                [field]: updatedArray
-            };
-        });
-    };
-
-    const handleAddItem = (field) => {
-        setGame(prevGame => ({
-            ...prevGame,
-            [field]: [...prevGame[field], '']
-        }));
-    };
-
-    const handleRemoveItem = (index, field) => {
-        setGame(prevGame => {
-            const updatedArray = [...prevGame[field]];
-            updatedArray.splice(index, 1);
-            return {
-                ...prevGame,
-                [field]: updatedArray
-            };
-        });
-    };
-
-    const handleFileChange = (e) => {
-        setImageFile(e.target.files[0]);
     };
 
     const handleSubmit = async (e) => {
@@ -128,11 +80,6 @@ const AdminGameManagement = () => {
             platforms: game.platforms || [],
             genres: game.genres || []
         });
-    };
-
-    const handleDeleteGame = (gameId) => {
-        setDialogAction({ type: 'delete', gameId });
-        setDialogOpen(true);
     };
 
     const handleConfirmAction = async () => {
@@ -209,6 +156,17 @@ const AdminGameManagement = () => {
             }
         }
         setDialogOpen(false);
+    };
+
+    const handleDeleteGame = (gameId) => {
+        setDialogAction({ type: 'delete', gameId });
+        setDialogOpen(true);
+    };
+
+    const handleDeleteUser = (userId) => {
+        setSelectedUserId(userId);
+        setDialogAction('deleteUser');
+        setDialogOpen(true);
     };
 
     const handleDetailNavigation = (gameId) => {
@@ -309,62 +267,15 @@ const AdminGameManagement = () => {
                 <Typography variant="h4" gutterBottom>
                     Admin Game Management
                 </Typography>
-                <form onSubmit={editingGame ? handleUpdateGame : handleSubmit} encType="multipart/form-data">
-                    <Stack direction="column" spacing={2}>
-                        <TextField
-                            label="Game Title"
-                            name="title"
-                            value={game.title}
-                            onChange={handleChange}
-                            required
-                            fullWidth
-                        />
-                        <div>
-                            <Typography variant="h6">Platforms</Typography>
-                            {game.platforms.map((platform, index) => (
-                                <div key={index}>
-                                    <TextField
-                                        value={platform}
-                                        onChange={(e) => handleArrayChange(e, index, 'platforms')}
-                                        fullWidth
-                                    />
-                                    <Button variant='contained' color='warning' onClick={() => handleRemoveItem(index, 'platforms')} sx={{ mt: 1, mb: 1 }}>Remove</Button>
-                                </div>
-                            ))}
-                            <Button variant='contained' color='secondary' onClick={() => handleAddItem('platforms')}>Add Platform</Button>
-                        </div>
-                        <div>
-                            <Typography variant="h6">Genres</Typography>
-                            {game.genres.map((genre, index) => (
-                                <div key={index}>
-                                    <TextField
-                                        value={genre}
-                                        onChange={(e) => handleArrayChange(e, index, 'genres')}
-                                        fullWidth
-                                    />
-                                    <Button variant='contained' color='warning' onClick={() => handleRemoveItem(index, 'genres')} sx={{ mt: 1, mb: 1 }}>Remove</Button>
-                                </div>
-                            ))}
-                            <Button variant='contained' color='secondary' onClick={() => handleAddItem('genres')}>Add Genre</Button>
-                        </div>
-                        <label htmlFor="upload-button">
-                            <input
-                                id="upload-button"
-                                type="file"
-                                accept="image/jpeg, image/png, image/gif"
-                                onChange={handleFileChange}
-                                style={{ display: 'none' }}
-                            />
-                            <Button variant="contained" color='secondary' component="span">
-                                Choose File
-                            </Button>
-                            {imageFile && <span> {imageFile.name}</span>}
-                        </label>
-                        <Button type="submit" variant="contained" color='primary' sx={{ alignSelf: 'flex-start' }}>
-                            {editingGame ? 'Update Game' : 'Add Game'}
-                        </Button>
-                    </Stack>
-                </form>
+                <GameForm
+                    game={game}
+                    setGame={setGame}
+                    imageFile={imageFile}
+                    setImageFile={setImageFile}
+                    handleSubmit={handleSubmit}
+                    handleUpdateGame={handleUpdateGame}
+                    editingGame={editingGame}
+                />
                 <Box mt={4}>
                     <Typography variant="h5" gutterBottom>
                         All Games

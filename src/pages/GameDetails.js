@@ -34,6 +34,7 @@ const GameDetails = () => {
   const [hover, setHover] = useState(-1);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('warning');
   const user = authService.getUser();
   const navigate = useNavigate();
 
@@ -90,10 +91,14 @@ const GameDetails = () => {
 
       if (response.status === 200) {
         console.log('Game added to backlog:', gameId || igdbGameId);
+        setAlertMessage('Game added to your backlog successfully');
+        setAlertSeverity('success');
+        setAlertOpen(true);
       }
     } catch (error) {
       if (error.response && error.response.status === 409) {
         setAlertMessage('Game is already in your backlog');
+        setAlertSeverity('warning');
         setAlertOpen(true);
       } else {
         console.error('Error adding game to backlog:', error);
@@ -186,7 +191,7 @@ const GameDetails = () => {
           </Button>
         </Box>
         <Snackbar open={alertOpen} autoHideDuration={6000} onClose={() => setAlertOpen(false)}>
-          <Alert onClose={() => setAlertOpen(false)} severity="warning" sx={{ width: '100%' }}>
+          <Alert onClose={() => setAlertOpen(false)} severity={alertSeverity} sx={{ width: '100%' }}>
             {alertMessage}
           </Alert>
         </Snackbar>
