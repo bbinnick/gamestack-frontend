@@ -130,7 +130,7 @@ const AdminGameManagement = () => {
             }
 
             try {
-                const response = await authService.getAxiosInstance().post('/games/add', formData, {
+                const response = await authService.getAxiosInstance().post('/games/create', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
@@ -248,7 +248,7 @@ const AdminGameManagement = () => {
         },
     ];
 
-    const paginationModel = { page: 0, pageSize: 5 };
+    const paginationModel = { page: 0, pageSize: 10 };
 
     return (
         <TemplateFrame
@@ -323,7 +323,7 @@ const AdminGameManagement = () => {
                             rows={games}
                             columns={columns}
                             initialState={{ pagination: { paginationModel } }}
-                            pageSizeOptions={[5, 10, 20, { value: games.length, label: 'All' }]}
+                            pageSizeOptions={[10, 15, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
                         />
                     </Box>

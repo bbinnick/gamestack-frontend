@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, CardMedia } from '@mui/material';
 import Rating from '@mui/material/Rating';
 import StarIcon from '@mui/icons-material/Star';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import TemplateFrame from '../components/TemplateFrame';
 import { useThemeContext } from '../components/ThemeContext';
 import authService from '../services/AuthService';
@@ -30,6 +32,8 @@ const GameDetails = () => {
   const [game, setGame] = useState(null);
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(-1);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const user = authService.getUser();
   const navigate = useNavigate();
 
@@ -77,17 +81,23 @@ const GameDetails = () => {
     }
 
     try {
+      let response;
       if (igdbGameId) {
-        const response = await authService.getAxiosInstance().post('/games/add-igdb-game', game);
-        const addedGame = response.data;
-        await authService.getAxiosInstance().post(`/games/add-to-backlog/${addedGame.id}`);
-        console.log('IGDB game added to backlog:', addedGame.id);
+        response = await authService.getAxiosInstance().post('/games/add-igdb-game', game);
       } else {
-        await authService.getAxiosInstance().post(`/games/add-to-backlog/${gameId}`);
-        console.log('Game added to backlog:', gameId);
+        response = await authService.getAxiosInstance().post(`/games/add-to-backlog/${gameId}`);
+      }
+
+      if (response.status === 200) {
+        console.log('Game added to backlog:', gameId || igdbGameId);
       }
     } catch (error) {
-      console.error('Error adding game to backlog:', error);
+      if (error.response && error.response.status === 409) {
+        setAlertMessage('Game is already in your backlog');
+        setAlertOpen(true);
+      } else {
+        console.error('Error adding game to backlog:', error);
+      }
     }
   };
 
@@ -128,51 +138,58 @@ const GameDetails = () => {
   const imageUrl = game.imageUrl ? `http://localhost:8080/uploads/${game.imageUrl}` : (game.coverUrl ? `https://images.igdb.com/igdb/image/upload/t_720p/${game.coverUrl}.jpg` : 'https://via.placeholder.com/800x450');
 
   return (
-    <TemplateFrame mode={mode} toggleColorMode={toggleColorMode} user={user}>
+    <TemplateFrame
+      mode={mode}
+      toggleColorMode={toggleColorMode}
+      user={user}
+    >
       <Container>
-        <Typography variant="h4" gutterBottom>
-          {game.title || game.name || 'Unknown Title'}
-        </Typography>
-        <CardMedia
-          component="img"
-          alt={game.title || game.name || 'Unknown Title'}
-          image={imageUrl}
-          sx={{
-            width: '100%',
-            height: 'auto',
-            maxHeight: 700,
-            objectFit: 'contain',
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-          }}
-        />
-        <Box sx={{ mt: 2 }}>
-          <Box sx={{ width: 200, display: 'flex', alignItems: 'center', mt: 2 }}>
-            <Rating
-              name="hover-feedback"
-              value={rating}
-              precision={0.5}
-              getLabelText={getLabelText}
-              onChange={handleRatingChange}
-              onChangeActive={(event, newHover) => {
-                setHover(newHover);
-              }}
-              emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
-            />
-            {rating !== null && (
-              <Box sx={{ ml: 2 }}>{labels[hover !== -1 ? hover : rating]}</Box>
-            )}
-          </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <CardMedia
+            component="img"
+            alt={game.title || game.name || 'Unknown Title'}
+            image={imageUrl}
+            sx={{
+              width: '100%',
+              height: 'auto',
+              maxHeight: 700,
+              objectFit: 'contain',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}
+          />
+          <Typography variant="h4" component="h1" gutterBottom>
+            {game.title || game.name || 'Unknown Title'}
+          </Typography>
           <Typography variant="h6">Platforms: {platforms}</Typography>
           <Typography variant="h6">Genres: {genres}</Typography>
           <Typography variant="h6">IGDB Rating: {igdbRating}</Typography>
           <Typography variant="body1" sx={{ mt: 2 }}>
             {game.summary || 'No description available.'}
           </Typography>
+          <Rating
+            name="hover-feedback"
+            value={rating}
+            precision={0.5}
+            getLabelText={getLabelText}
+            onChange={handleRatingChange}
+            onChangeActive={(event, newHover) => {
+              setHover(newHover);
+            }}
+            emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+          />
+          {rating !== null && (
+            <Box sx={{ ml: 2 }}>{labels[hover !== -1 ? hover : rating]}</Box>
+          )}
           <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleAddToBacklog}>
             Add to Backlog
           </Button>
         </Box>
+        <Snackbar open={alertOpen} autoHideDuration={6000} onClose={() => setAlertOpen(false)}>
+          <Alert onClose={() => setAlertOpen(false)} severity="warning" sx={{ width: '100%' }}>
+            {alertMessage}
+          </Alert>
+        </Snackbar>
       </Container>
     </TemplateFrame>
   );

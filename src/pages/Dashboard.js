@@ -76,11 +76,7 @@ export default function Dashboard({ user, handleLogout }) {
             <ThemeProvider theme={DashboardTheme}>
                 <CssBaseline enableColorScheme />
                 <AppAppBar user={user} handleLogout={() => handleLogout(navigate)} />
-                <Container
-                    maxWidth="lg"
-                    component="main"
-                    sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}
-                >
+                <Container maxWidth={false} component="main" sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}>
                     <MainContent games={games} />
                     <Latest title="Popular Games" games={popularGames} />
                     <Latest title="New Releases" games={newReleases} />

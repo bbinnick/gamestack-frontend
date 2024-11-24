@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import { alpha, styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
@@ -28,7 +28,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 export default function AppAppBar({ user, handleLogout }) {
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = useState(false);
     const navigate = useNavigate();
 
     const toggleDrawer = (newOpen) => () => {
@@ -36,11 +36,8 @@ export default function AppAppBar({ user, handleLogout }) {
     };
 
     return (
-        <AppBar
-            position="fixed"
-            sx={{ boxShadow: 0, bgcolor: 'transparent', backgroundImage: 'none', mt: 10 }}
-        >
-            <Container maxWidth="lg">
+        <AppBar position="fixed" sx={{ boxShadow: 0, bgcolor: 'transparent', backgroundImage: 'none', mt: 10 }}>
+            <Container maxWidth={false}>
                 <StyledToolbar variant="dense" disableGutters>
                     <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
                         <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
@@ -54,13 +51,7 @@ export default function AppAppBar({ user, handleLogout }) {
                             )}
                         </Box>
                     </Box>
-                    <Box
-                        sx={{
-                            display: { xs: 'none', md: 'flex' },
-                            gap: 1,
-                            alignItems: 'center',
-                        }}
-                    >
+                    <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}>
                         {user ? (
                             <Button color="primary" variant="contained" size="small" onClick={() => handleLogout(navigate)}>
                                 Log out
@@ -89,22 +80,22 @@ export default function AppAppBar({ user, handleLogout }) {
                                         justifyContent: 'space-between',
                                     }}
                                 >
-                                    <IconButton onClick={toggleDrawer(false)}>
-                                        <CloseRoundedIcon />
-                                    </IconButton>
                                 </Box>
                                 <Divider sx={{ my: 3 }} />
+                                <IconButton onClick={toggleDrawer(false)}>
+                                    <CloseRoundedIcon />
+                                </IconButton>
                                 <MenuItem>
                                     <Button color="primary" variant="outlined" fullWidth onClick={() => navigate('/Backlog')}>
                                         Backlog
                                     </Button>
                                 </MenuItem>
                                 <MenuItem>
-                                {user && user.authorities === 'ROLE_ADMIN' && (
-                                    <Button variant="text" color="info" size="small" onClick={() => navigate('/admin')}>
-                                        Admin
-                                    </Button>
-                                )}
+                                    {user && user.authorities === 'ROLE_ADMIN' && (
+                                        <Button variant="text" color="info" size="small" onClick={() => navigate('/admin')}>
+                                            Admin
+                                        </Button>
+                                    )}
                                 </MenuItem>
                                 {user ? (
                                     <MenuItem>

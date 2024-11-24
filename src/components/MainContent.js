@@ -134,8 +134,8 @@ export default function MainContent({ games }) {
     navigate(`/games/local/${gameId}`);
   };
 
-    // Filter out IGDB games
-    const filteredGames = games.filter(game => !game.igdbGameId);
+  // Filter out IGDB games
+  const filteredGames = games.filter(game => !game.igdbGameId);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

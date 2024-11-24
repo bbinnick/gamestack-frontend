@@ -186,7 +186,7 @@ const BacklogPage = () => {
         setViewMode(viewMode === 'table' ? 'cards' : 'table');
     };
 
-    const paginationModel = { page: 0, pageSize: 5 };
+    const paginationModel = { page: 0, pageSize: 10 };
 
     return (
         <TemplateFrame
@@ -210,7 +210,7 @@ const BacklogPage = () => {
                             rows={games}
                             columns={columns}
                             initialState={{ pagination: { paginationModel } }}
-                            pageSizeOptions={[5, 10, 20, { value: games.length, label: 'All' }]}
+                            pageSizeOptions={[10, 15, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
                         />
                     </Box>
@@ -222,12 +222,16 @@ const BacklogPage = () => {
                                     {game.imageUrl ? (
                                         <CardMedia
                                             component="img"
-                                            height="140"
+                                            alt={game.title || game.name || 'Unknown Title'}
                                             image={game.imageUrl}
-                                            alt={game.title}
+                                            sx={{
+                                                width: '100%',
+                                                height: 200,
+                                                objectFit: 'cover',
+                                            }}
                                         />
                                     ) : (
-                                        <Box sx={{ height: 140, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#f0f0f0' }}>
+                                        <Box sx={{ height: 200, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#f0f0f0' }}>
                                             <ImageNotSupportedIcon color="disabled" />
                                         </Box>
                                     )}
