@@ -182,11 +182,11 @@ const BacklogPage = () => {
         },
     ];
 
+    const paginationModel = { page: 0, pageSize: 10 };
+
     const toggleViewMode = () => {
         setViewMode(viewMode === 'table' ? 'cards' : 'table');
     };
-
-    const paginationModel = { page: 0, pageSize: 10 };
 
     return (
         <TemplateFrame
@@ -194,7 +194,7 @@ const BacklogPage = () => {
             toggleColorMode={toggleColorMode}
             user={user}
         >
-            <Container maxWidth="lg">
+            <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 5 }}>
                     <Typography variant="h4" component="h1">
                         My Game Backlog
@@ -205,13 +205,14 @@ const BacklogPage = () => {
                 </Box>
 
                 {viewMode === 'table' ? (
-                    <Box sx={{ height: 500, width: '100%', mt: 4 }}>
+                    <Box sx={{ flexGrow: 1, mt: 4, display: 'flex', flexDirection: 'column' }}>
                         <DataGrid
                             rows={games}
                             columns={columns}
                             initialState={{ pagination: { paginationModel } }}
                             pageSizeOptions={[10, 15, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
+                            disableSelectionOnClick
                         />
                     </Box>
                 ) : (

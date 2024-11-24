@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     TextField, Button, Stack, Container, Typography,
-    Box, Grid2, Card, CardContent, Tooltip,
+    Box, Tooltip,
     Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -20,6 +20,8 @@ const AdminGameManagement = () => {
     });
     const [imageFile, setImageFile] = useState(null);
     const [games, setGames] = useState([]);
+    const [users, setUsers] = useState([]);
+    const [selectedUserId, setSelectedUserId] = useState(null);
     const [editingGame, setEditingGame] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogAction, setDialogAction] = useState(null);
@@ -29,6 +31,7 @@ const AdminGameManagement = () => {
     useEffect(() => {
         if (user) {
             fetchGames();
+            fetchUsers();
         } else {
             navigate('/log-in');
         }
@@ -45,6 +48,23 @@ const AdminGameManagement = () => {
         } catch (error) {
             console.error('Error fetching games:', error);
         }
+    };
+
+    const fetchUsers = async () => {
+        try {
+            const response = await authService.getAxiosInstance().get('/users/all');
+            const usersData = response.data.filter(u => u.id !== user.user_id); // Filter out the current user
+            //response.data.filter(u => u.role !== 'ADMIN'); // Filter out the admin user
+            setUsers(usersData);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    };
+
+    const handleDeleteUser = (userId) => {
+        setSelectedUserId(userId);
+        setDialogAction('deleteUser');
+        setDialogOpen(true);
     };
 
     const handleChange = (e) => {
@@ -179,6 +199,14 @@ const AdminGameManagement = () => {
             } catch (error) {
                 console.error('Error deleting game:', error);
             }
+        } else if (dialogAction === 'deleteUser') {
+            try {
+                await authService.getAxiosInstance().delete(`/users/${selectedUserId}`);
+                console.log('User deleted:', selectedUserId);
+                setUsers(prevUsers => prevUsers.filter(user => user.id !== selectedUserId));
+            } catch (error) {
+                console.error('Error deleting user:', error);
+            }
         }
         setDialogOpen(false);
     };
@@ -187,7 +215,7 @@ const AdminGameManagement = () => {
         navigate(`/games/local/${gameId}`);
     };
 
-    const columns = [
+    const gameColumns = [
         {
             field: 'image',
             headerName: 'Game Image',
@@ -248,6 +276,27 @@ const AdminGameManagement = () => {
         },
     ];
 
+    const userColumns = [
+        { field: 'id', headerName: 'ID', width: 90 },
+        { field: 'username', headerName: 'Username', width: 150 },
+        { field: 'email', headerName: 'Email', width: 200 },
+        { field: 'role', headerName: 'Role', width: 150 },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 150,
+            renderCell: (params) => (
+                <Button
+                    color="error"
+                    variant="contained"
+                    onClick={() => handleDeleteUser(params.row.id)}
+                >
+                    Delete
+                </Button>
+            ),
+        },
+    ];
+
     const paginationModel = { page: 0, pageSize: 10 };
 
     return (
@@ -256,7 +305,7 @@ const AdminGameManagement = () => {
             toggleColorMode={toggleColorMode}
             user={user}
         >
-            <Container>
+            <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="h4" gutterBottom>
                     Admin Game Management
                 </Typography>
@@ -306,12 +355,14 @@ const AdminGameManagement = () => {
                                 onChange={handleFileChange}
                                 style={{ display: 'none' }}
                             />
-                            <Button variant="contained" component="span">
+                            <Button variant="contained" color='secondary' component="span">
                                 Choose File
                             </Button>
                             {imageFile && <span> {imageFile.name}</span>}
                         </label>
-                        <Button type="submit" variant="contained">{editingGame ? 'Update Game' : 'Add Game'}</Button>
+                        <Button type="submit" variant="contained" color='primary' sx={{ alignSelf: 'flex-start' }}>
+                            {editingGame ? 'Update Game' : 'Add Game'}
+                        </Button>
                     </Stack>
                 </form>
                 <Box mt={4}>
@@ -321,7 +372,7 @@ const AdminGameManagement = () => {
                     <Box sx={{ height: 500, width: '100%', mt: 4 }}>
                         <DataGrid
                             rows={games}
-                            columns={columns}
+                            columns={gameColumns}
                             initialState={{ pagination: { paginationModel } }}
                             pageSizeOptions={[10, 15, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
@@ -330,47 +381,17 @@ const AdminGameManagement = () => {
                 </Box>
                 <Box mt={4}>
                     <Typography variant="h5" gutterBottom>
-                        {/*Revise this to manage users instead*/}
-                        Users and Their Backlogs
+                        All Users
                     </Typography>
-                    <Grid2 container spacing={4}>
-                        {games.map(game => (
-                            game.userGames.length > 0 ? (
-                                game.userGames.map(user => (
-                                    <Grid2 key={user.id} xs={12} sm={6} md={4}>
-                                        <Card sx={{ maxWidth: 345 }}>
-                                            <CardContent>
-                                                <Typography gutterBottom variant="h5" component="div">
-                                                    {user.username}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Email: {user.email}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Status: {user.status}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Added On: {user.addedOn}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Backlog:
-                                                </Typography>
-                                                <Typography key={game.id} variant="body2" color="text.secondary">
-                                                    - {game.title}
-                                                </Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid2>
-                                ))
-                            ) : (
-                                <Grid2 key={game.id} xs={12}>
-                                    <Typography variant="body2" color="text.secondary">
-                                        No users have added this game to their backlog.
-                                    </Typography>
-                                </Grid2>
-                            )
-                        ))}
-                    </Grid2>
+                    <Box sx={{ height: 500, width: '100%', mt: 4 }}>
+                        <DataGrid
+                            rows={users}
+                            columns={userColumns}
+                            initialState={{ pagination: { paginationModel } }}
+                            pageSizeOptions={[10, 15, 20, { value: users.length, label: 'All' }]}
+                            getRowId={(row) => row.id}
+                        />
+                    </Box>
                 </Box>
             </Container>
             <Dialog
