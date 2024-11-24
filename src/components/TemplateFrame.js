@@ -7,7 +7,7 @@ import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useThemeContext } from '../components/ThemeContext';
 import ToggleColorMode from './ToggleColorMode.js';
 import getSignUpTheme from '../theme/getSignUpTheme.js';
@@ -30,6 +30,7 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
 function TemplateFrame({ children, user }) {
   const { mode } = useThemeContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const handleBackToHome = () => {
     navigate('/');
   };
@@ -49,16 +50,18 @@ function TemplateFrame({ children, user }) {
               p: '8px 12px',
             }}
           >
-            <Button
-              variant="text"
-              size="small"
-              aria-label="Back to Dashboard"
-              startIcon={<ArrowBackRoundedIcon />}
-              onClick={handleBackToHome}
-              sx={{ display: { xs: 'none', sm: 'flex' } }}
-            >
-              Back to Dashboard
-            </Button>
+            {location.pathname !== '/' && (
+              <Button
+                variant="text"
+                size="small"
+                aria-label="Back to Dashboard"
+                startIcon={<ArrowBackRoundedIcon />}
+                onClick={handleBackToHome}
+                sx={{ display: { xs: 'none', sm: 'flex' } }}
+              >
+                Back to Dashboard
+              </Button>
+            )}
             <IconButton
               size="small"
               aria-label="Back to Dashboard"
@@ -68,33 +71,33 @@ function TemplateFrame({ children, user }) {
               <ArrowBackRoundedIcon />
             </IconButton>
             <Button
-                variant="text"
-                size="small"
-                aria-label="View Backlog"
-                onClick={() => navigate('/backlog')}
-                sx={{ display: { xs: 'none', sm: 'flex' } }}
+              variant="text"
+              size="small"
+              aria-label="View Backlog"
+              onClick={() => navigate('/backlog')}
+              sx={{ display: { xs: 'none', sm: 'flex' } }}
             >
-                Backlog
+              Backlog
             </Button>
             {user && user.authorities === 'ROLE_ADMIN' && (
-                <Button
-                    variant="text"
-                    size="small"
-                    aria-label="Admin Page"
-                    onClick={() => navigate('/admin')}
-                    sx={{ display: { xs: 'none', sm: 'flex' } }}
-                >
-                    Admin Page
-                </Button>
+              <Button
+                variant="text"
+                size="small"
+                aria-label="Admin Page"
+                onClick={() => navigate('/admin')}
+                sx={{ display: { xs: 'none', sm: 'flex' } }}
+              >
+                Admin Page
+              </Button>
             )}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {user && (
                 <Typography variant="body2" aria-label="username" sx={{ color: 'text.primary' }}>
                   Logged in as: {user.username}
                 </Typography>
-            )}
-           <ToggleColorMode />
-          </Box>          
+              )}
+              <ToggleColorMode />
+            </Box>
           </Toolbar>
         </StyledAppBar>
         <Box sx={{ flex: '1 1', overflow: 'auto' }}>{children}</Box>

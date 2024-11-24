@@ -1,25 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import {
-    TextField, Button, Stack, Container, Typography,
-    Box, Grid2, Card, CardContent, Tooltip,
-    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
+    Button, Container, Typography, Box, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import TemplateFrame from '../components/TemplateFrame';
 import { useNavigate } from 'react-router-dom';
 import { useThemeContext } from '../components/ThemeContext';
 import authService from '../services/AuthService';
+import GameForm from '../components/CreateGameForm';
+import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
+import Tooltip from '@mui/material/Tooltip';
 
 const AdminGameManagement = () => {
     const { mode, toggleColorMode } = useThemeContext();
     const [game, setGame] = useState({
         title: '',
-        platform: '',
-        genre: ''
+        platforms: [],
+        genres: []
     });
     const [imageFile, setImageFile] = useState(null);
     const [games, setGames] = useState([]);
+    const [users, setUsers] = useState([]);
+    const [selectedUserId, setSelectedUserId] = useState(null);
     const [editingGame, setEditingGame] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogAction, setDialogAction] = useState(null);
@@ -29,6 +31,7 @@ const AdminGameManagement = () => {
     useEffect(() => {
         if (user) {
             fetchGames();
+            fetchUsers();
         } else {
             navigate('/log-in');
         }
@@ -37,18 +40,25 @@ const AdminGameManagement = () => {
     const fetchGames = async () => {
         try {
             const response = await authService.getAxiosInstance().get('/games/all-with-users');
-            setGames(response.data);
+            const gamesData = response.data.map(game => ({
+                ...game,
+                imageUrl: game.igdbGameId ? game.imageUrl : `http://localhost:8080/uploads/${game.imageUrl}`
+            }));
+            setGames(gamesData);
         } catch (error) {
             console.error('Error fetching games:', error);
         }
     };
 
-    const handleChange = (e) => {
-        setGame({ ...game, [e.target.name]: e.target.value || '' });
-    };
-
-    const handleFileChange = (e) => {
-        setImageFile(e.target.files[0]);
+    const fetchUsers = async () => {
+        try {
+            const response = await authService.getAxiosInstance().get('/users/all');
+            const usersData = response.data.filter(u => u.id !== user.user_id);
+            //response.data.filter(u => u.role !== 'ADMIN'); // Filter out the admin user
+            setUsers(usersData);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -67,14 +77,9 @@ const AdminGameManagement = () => {
         setEditingGame(game);
         setGame({
             title: game.title || '',
-            platform: game.platform || '',
-            genre: game.genre || ''
+            platforms: game.platforms || [],
+            genres: game.genres || []
         });
-    };
-
-    const handleDeleteGame = (gameId) => {
-        setDialogAction({ type: 'delete', gameId });
-        setDialogOpen(true);
     };
 
     const handleConfirmAction = async () => {
@@ -92,7 +97,7 @@ const AdminGameManagement = () => {
             }
 
             try {
-                const response = await authService.getAxiosInstance().post('/games/add', formData, {
+                const response = await authService.getAxiosInstance().post('/games/create', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
@@ -101,8 +106,8 @@ const AdminGameManagement = () => {
                 fetchGames();
                 setGame({
                     title: '',
-                    platform: '',
-                    genre: ''
+                    platforms: [],
+                    genres: []
                 });
                 setImageFile(null);
             } catch (error) {
@@ -126,8 +131,8 @@ const AdminGameManagement = () => {
                 setEditingGame(null);
                 setGame({
                     title: '',
-                    platform: '',
-                    genre: ''
+                    platforms: [],
+                    genres: []
                 });
                 setImageFile(null);
             } catch (error) {
@@ -141,15 +146,34 @@ const AdminGameManagement = () => {
             } catch (error) {
                 console.error('Error deleting game:', error);
             }
+        } else if (dialogAction === 'deleteUser') {
+            try {
+                await authService.getAxiosInstance().delete(`/users/${selectedUserId}`);
+                console.log('User deleted:', selectedUserId);
+                setUsers(prevUsers => prevUsers.filter(user => user.id !== selectedUserId));
+            } catch (error) {
+                console.error('Error deleting user:', error);
+            }
         }
         setDialogOpen(false);
     };
 
-    const handleDetailNavigation = (gameId) => {
-        navigate(`/games/${gameId}`);
+    const handleDeleteGame = (gameId) => {
+        setDialogAction({ type: 'delete', gameId });
+        setDialogOpen(true);
     };
 
-    const columns = [
+    const handleDeleteUser = (userId) => {
+        setSelectedUserId(userId);
+        setDialogAction('deleteUser');
+        setDialogOpen(true);
+    };
+
+    const handleDetailNavigation = (gameId) => {
+        navigate(`/games/local/${gameId}`);
+    };
+
+    const gameColumns = [
         {
             field: 'image',
             headerName: 'Game Image',
@@ -157,7 +181,7 @@ const AdminGameManagement = () => {
             renderCell: (params) => {
                 return params.row.imageUrl ? (
                     <img
-                        src={`http://localhost:8080/uploads/${params.row.imageUrl}`}
+                        src={params.row.imageUrl}
                         alt={params.row.title}
                         onError={(e) => { e.target.style.display = 'none'; }}
                         style={{ width: '100px', height: 'auto', borderRadius: '5px' }}
@@ -182,8 +206,8 @@ const AdminGameManagement = () => {
                 </Button>
             ),
         },
-        { field: 'genre', headerName: 'Genre', width: 150 },
-        { field: 'platform', headerName: 'Platform', width: 150 },
+        { field: 'genres', headerName: 'Genres', width: 150 },
+        { field: 'platforms', headerName: 'Platforms', width: 150 },
         {
             field: 'actions',
             headerName: 'Actions',
@@ -210,7 +234,28 @@ const AdminGameManagement = () => {
         },
     ];
 
-    const paginationModel = { page: 0, pageSize: 5 };
+    const userColumns = [
+        { field: 'id', headerName: 'ID', width: 90 },
+        { field: 'username', headerName: 'Username', width: 150 },
+        { field: 'email', headerName: 'Email', width: 200 },
+        { field: 'role', headerName: 'Role', width: 150 },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 150,
+            renderCell: (params) => (
+                <Button
+                    color="error"
+                    variant="contained"
+                    onClick={() => handleDeleteUser(params.row.id)}
+                >
+                    Delete
+                </Button>
+            ),
+        },
+    ];
+
+    const paginationModel = { page: 0, pageSize: 10 };
 
     return (
         <TemplateFrame
@@ -218,50 +263,19 @@ const AdminGameManagement = () => {
             toggleColorMode={toggleColorMode}
             user={user}
         >
-            <Container>
+            <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="h4" gutterBottom>
                     Admin Game Management
                 </Typography>
-                <form onSubmit={editingGame ? handleUpdateGame : handleSubmit} encType="multipart/form-data">
-                    <Stack direction="column" spacing={2}>
-                        <TextField
-                            label="Game Title"
-                            name="title"
-                            value={game.title}
-                            onChange={handleChange}
-                            required
-                            fullWidth
-                        />
-                        <TextField
-                            label="Platform"
-                            name="platform"
-                            value={game.platform}
-                            onChange={handleChange}
-                            fullWidth
-                        />
-                        <TextField
-                            label="Genre"
-                            name="genre"
-                            value={game.genre}
-                            onChange={handleChange}
-                            fullWidth
-                        />
-                        <label htmlFor="upload-button">
-                            <input
-                                id="upload-button"
-                                type="file"
-                                accept="image/jpeg, image/png, image/gif"
-                                onChange={handleFileChange}
-                                style={{ display: 'none' }}
-                            />
-                            <Button variant="contained" component="span">
-                                Choose File
-                            </Button>
-                            {imageFile && <span> {imageFile.name}</span>}
-                        </label>
-                        <Button type="submit" variant="contained">{editingGame ? 'Update Game' : 'Add Game'}</Button>
-                    </Stack>
-                </form>
+                <GameForm
+                    game={game}
+                    setGame={setGame}
+                    imageFile={imageFile}
+                    setImageFile={setImageFile}
+                    handleSubmit={handleSubmit}
+                    handleUpdateGame={handleUpdateGame}
+                    editingGame={editingGame}
+                />
                 <Box mt={4}>
                     <Typography variant="h5" gutterBottom>
                         All Games
@@ -269,56 +283,26 @@ const AdminGameManagement = () => {
                     <Box sx={{ height: 500, width: '100%', mt: 4 }}>
                         <DataGrid
                             rows={games}
-                            columns={columns}
+                            columns={gameColumns}
                             initialState={{ pagination: { paginationModel } }}
-                            pageSizeOptions={[5, 10, 20, { value: games.length, label: 'All' }]}
+                            pageSizeOptions={[10, 15, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
                         />
                     </Box>
                 </Box>
                 <Box mt={4}>
                     <Typography variant="h5" gutterBottom>
-                        {/*Revise this to manage users instead*/}
-                        Users and Their Backlogs
+                        All Users
                     </Typography>
-                    <Grid2 container spacing={4}>
-                        {games.map(game => (
-                            game.userGames.length > 0 ? (
-                                game.userGames.map(user => (
-                                    <Grid2 key={user.id} xs={12} sm={6} md={4}>
-                                        <Card sx={{ maxWidth: 345 }}>
-                                            <CardContent>
-                                                <Typography gutterBottom variant="h5" component="div">
-                                                    {user.username}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Email: {user.email}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Status: {user.status}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Added On: {user.addedOn}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Backlog:
-                                                </Typography>
-                                                <Typography key={game.id} variant="body2" color="text.secondary">
-                                                    - {game.title}
-                                                </Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid2>
-                                ))
-                            ) : (
-                                <Grid2 key={game.id} xs={12}>
-                                    <Typography variant="body2" color="text.secondary">
-                                        No users have added this game to their backlog.
-                                    </Typography>
-                                </Grid2>
-                            )
-                        ))}
-                    </Grid2>
+                    <Box sx={{ height: 500, width: '100%', mt: 4 }}>
+                        <DataGrid
+                            rows={users}
+                            columns={userColumns}
+                            initialState={{ pagination: { paginationModel } }}
+                            pageSizeOptions={[10, 15, 20, { value: users.length, label: 'All' }]}
+                            getRowId={(row) => row.id}
+                        />
+                    </Box>
                 </Box>
             </Container>
             <Dialog

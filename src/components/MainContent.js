@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
@@ -14,6 +14,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import { styled } from '@mui/material/styles';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
+import SearchAutocomplete from './SearchAutocomplete';
 import { useNavigate } from 'react-router-dom';
 import Grid2 from '@mui/material/Grid2';
 
@@ -43,14 +44,6 @@ const StyledCardContent = styled(CardContent)({
   '&:last-child': {
     paddingBottom: 8,
   },
-});
-
-const StyledTypography = styled(Typography)({
-  display: '-webkit-box',
-  WebkitBoxOrient: 'vertical',
-  WebkitLineClamp: 2,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
 });
 
 // Author component to display the author(s) of the game if i decide to add it
@@ -123,7 +116,7 @@ MainContent.propTypes = {
 };
 
 export default function MainContent({ games }) {
-  const [focusedCardIndex, setFocusedCardIndex] = React.useState(null);
+  const [focusedCardIndex, setFocusedCardIndex] = useState(null);
   const navigate = useNavigate();
 
   const handleFocus = (index) => {
@@ -139,8 +132,11 @@ export default function MainContent({ games }) {
   };
 
   const handleCardClick = (gameId) => {
-    navigate(`/games/${gameId}`);
+    navigate(`/games/local/${gameId}`);
   };
+
+  // Filter out IGDB games
+  const filteredGames = games.filter(game => !game.igdbGameId);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -150,17 +146,6 @@ export default function MainContent({ games }) {
         </Typography>
         <Typography variant="h3">Explore our selection of games</Typography>
       </div>
-      <Box
-        sx={{
-          display: { xs: 'flex', sm: 'none' },
-          flexDirection: 'row',
-          gap: 1,
-          width: { xs: '100%', md: 'fit-content' },
-          overflow: 'auto',
-        }}
-      >
-        <Search />
-      </Box>
       <Box
         sx={{
           display: 'flex',
@@ -184,7 +169,7 @@ export default function MainContent({ games }) {
           <Chip
             onClick={handleFilterClick}
             size="medium"
-            label="Company"
+            label="Popular"
             sx={{
               backgroundColor: 'transparent',
               border: 'none',
@@ -193,7 +178,7 @@ export default function MainContent({ games }) {
           <Chip
             onClick={handleFilterClick}
             size="medium"
-            label="Product"
+            label="New Releases"
             sx={{
               backgroundColor: 'transparent',
               border: 'none',
@@ -209,11 +194,11 @@ export default function MainContent({ games }) {
             overflow: 'auto',
           }}
         >
-          <Search />
         </Box>
       </Box>
+      <SearchAutocomplete />
       <Grid2 container spacing={2}>
-        {games.map((game, index) => (
+        {filteredGames.map((game, index) => (
           <Grid2 key={game.id} xs={12} sm={6} md={4} lg={2.4}>
             <StyledCard
               variant="outlined"
@@ -243,15 +228,12 @@ export default function MainContent({ games }) {
                 </Box>
               )}
               <StyledCardContent>
-                <Typography gutterBottom variant="caption" component="div">
-                  Genre: {game.genre}
-                </Typography>
                 <Typography gutterBottom variant="h6" component="div">
                   {game.title}
                 </Typography>
-                <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                  Platform: {game.platform}
-                </StyledTypography>
+                <Typography gutterBottom variant="caption" component="div">
+                  Genre: {game.genre}
+                </Typography>
               </StyledCardContent>
               {/* <Author authors={cardData[5].authors} /> */}
             </StyledCard>

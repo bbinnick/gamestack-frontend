@@ -43,7 +43,7 @@ const BacklogPage = () => {
                 const response = await authService.getAxiosInstance().get('/games/backlog');
                 const gamesData = response.data.map(game => {
                     const userGame = game.userGames.find(ug => ug.userId === user.user_id) || {};
-                    const imageUrl = game.imageUrl ? `http://localhost:8080/uploads/${game.imageUrl}` : null;
+                    const imageUrl = game.igdbGameId ? game.imageUrl : `http://localhost:8080/uploads/${game.imageUrl}`;
                     return { ...game, imageUrl, status: userGame.status, addedOn: userGame.addedOn, rating: userGame.rating || 0 };
                 });
                 setGames(gamesData);
@@ -95,7 +95,7 @@ const BacklogPage = () => {
     };
 
     const handleDetailNavigation = (gameId) => {
-        navigate(`/games/${gameId}`);
+        navigate(`/games/local/${gameId}`);
     };
 
     // Columns for DataGrid
@@ -132,8 +132,8 @@ const BacklogPage = () => {
                 </Button>
             ),
         },
-        { field: 'genre', headerName: 'Genre', width: 150 },
-        { field: 'platform', headerName: 'Platform', width: 150 },
+        { field: 'genres', headerName: 'Genres', width: 150 },
+        { field: 'platforms', headerName: 'Platforms', width: 150 },
         {
             field: 'status',
             headerName: 'Status',
@@ -182,11 +182,11 @@ const BacklogPage = () => {
         },
     ];
 
+    const paginationModel = { page: 0, pageSize: 10 };
+
     const toggleViewMode = () => {
         setViewMode(viewMode === 'table' ? 'cards' : 'table');
     };
-
-    const paginationModel = { page: 0, pageSize: 5 };
 
     return (
         <TemplateFrame
@@ -194,7 +194,7 @@ const BacklogPage = () => {
             toggleColorMode={toggleColorMode}
             user={user}
         >
-            <Container maxWidth="lg">
+            <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 5 }}>
                     <Typography variant="h4" component="h1">
                         My Game Backlog
@@ -205,13 +205,14 @@ const BacklogPage = () => {
                 </Box>
 
                 {viewMode === 'table' ? (
-                    <Box sx={{ height: 500, width: '100%', mt: 4 }}>
+                    <Box sx={{ flexGrow: 1, mt: 4, display: 'flex', flexDirection: 'column' }}>
                         <DataGrid
                             rows={games}
                             columns={columns}
                             initialState={{ pagination: { paginationModel } }}
-                            pageSizeOptions={[5, 10, 20, { value: games.length, label: 'All' }]}
+                            pageSizeOptions={[10, 15, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
+                            disableSelectionOnClick
                         />
                     </Box>
                 ) : (
@@ -222,12 +223,16 @@ const BacklogPage = () => {
                                     {game.imageUrl ? (
                                         <CardMedia
                                             component="img"
-                                            height="140"
+                                            alt={game.title || game.name || 'Unknown Title'}
                                             image={game.imageUrl}
-                                            alt={game.title}
+                                            sx={{
+                                                width: '100%',
+                                                height: 200,
+                                                objectFit: 'cover',
+                                            }}
                                         />
                                     ) : (
-                                        <Box sx={{ height: 140, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#f0f0f0' }}>
+                                        <Box sx={{ height: 200, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#f0f0f0' }}>
                                             <ImageNotSupportedIcon color="disabled" />
                                         </Box>
                                     )}
@@ -236,10 +241,10 @@ const BacklogPage = () => {
                                             {game.title}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            Genre: {game.genre}
+                                            Genres: {game.genres.join(', ')}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            Platform: {game.platform}
+                                            Platforms: {game.platforms.join(', ')}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
                                             Status: {game.status}

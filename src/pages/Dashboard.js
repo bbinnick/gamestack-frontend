@@ -14,6 +14,8 @@ export default function Dashboard({ user, handleLogout }) {
     const { mode, toggleColorMode } = useThemeContext();
     const DashboardTheme = createTheme(getDashboardTheme(mode));
     const [games, setGames] = useState([]);
+    const [popularGames, setPopularGames] = useState([]);
+    const [newReleases, setNewReleases] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -30,7 +32,39 @@ export default function Dashboard({ user, handleLogout }) {
             }
         };
 
+        const fetchPopularGames = async () => {
+            try {
+                const response = await authService.getAxiosInstance().get('/igdb/games/popular', {
+                    params: { limit: 10 }
+                });
+                const popularGamesData = response.data.map(igdbGame => {
+                    const imageUrl = igdbGame.cover ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${igdbGame.cover.image_id}.jpg` : null;
+                    return { ...igdbGame, cover: { ...igdbGame.cover, url: imageUrl } };
+                });
+                setPopularGames(popularGamesData);
+            } catch (error) {
+                console.error('Error fetching popular games:', error);
+            }
+        };
+
+        const fetchNewReleases = async () => {
+            try {
+                const response = await authService.getAxiosInstance().get('/igdb/games/new-releases', {
+                    params: { limit: 10 }
+                });
+                const newReleasesData = response.data.map(igdbGame => {
+                    const imageUrl = igdbGame.cover ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${igdbGame.cover.image_id}.jpg` : null;
+                    return { ...igdbGame, cover: { ...igdbGame.cover, url: imageUrl } };
+                });
+                setNewReleases(newReleasesData);
+            } catch (error) {
+                console.error('Error fetching new releases:', error);
+            }
+        };
+
         fetchGames();
+        fetchPopularGames();
+        fetchNewReleases();
     }, []);
 
     return (
@@ -42,13 +76,10 @@ export default function Dashboard({ user, handleLogout }) {
             <ThemeProvider theme={DashboardTheme}>
                 <CssBaseline enableColorScheme />
                 <AppAppBar user={user} handleLogout={() => handleLogout(navigate)} />
-                <Container
-                    maxWidth="lg"
-                    component="main"
-                    sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}
-                >
+                <Container maxWidth={false} component="main" sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}>
                     <MainContent games={games} />
-                    <Latest />
+                    <Latest title="Popular Games" games={popularGames} />
+                    <Latest title="New Releases" games={newReleases} />
                 </Container>
                 <Footer />
             </ThemeProvider>

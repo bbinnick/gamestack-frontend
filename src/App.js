@@ -61,7 +61,8 @@ function App() {
             </RequireAuth>
           }
         />
-        <Route path="/games/:gameId" element={<GameDetails user={user} />} />
+        <Route path="/games/local/:gameId" element={<GameDetails user={user} />} />
+        <Route path="/games/igdb/:igdbGameId" element={<GameDetails user={user} />} />
         {/* Other routes */}
       </Routes>
     </BrowserRouter>
