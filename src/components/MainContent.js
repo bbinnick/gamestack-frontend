@@ -14,6 +14,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import { styled } from '@mui/material/styles';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
+import SearchAutocomplete from './SearchAutocomplete';
 import { useNavigate } from 'react-router-dom';
 import Grid2 from '@mui/material/Grid2';
 
@@ -147,17 +148,6 @@ export default function MainContent({ games }) {
       </div>
       <Box
         sx={{
-          display: { xs: 'flex', sm: 'none' },
-          flexDirection: 'row',
-          gap: 1,
-          width: { xs: '100%', md: 'fit-content' },
-          overflow: 'auto',
-        }}
-      >
-        <Search />
-      </Box>
-      <Box
-        sx={{
           display: 'flex',
           flexDirection: { xs: 'column-reverse', md: 'row' },
           width: '100%',
@@ -204,9 +194,9 @@ export default function MainContent({ games }) {
             overflow: 'auto',
           }}
         >
-          <Search />
         </Box>
       </Box>
+      <SearchAutocomplete />
       <Grid2 container spacing={2}>
         {filteredGames.map((game, index) => (
           <Grid2 key={game.id} xs={12} sm={6} md={4} lg={2.4}>
