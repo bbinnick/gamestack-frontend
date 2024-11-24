@@ -43,7 +43,7 @@ const BacklogPage = () => {
                 const response = await authService.getAxiosInstance().get('/games/backlog');
                 const gamesData = response.data.map(game => {
                     const userGame = game.userGames.find(ug => ug.userId === user.user_id) || {};
-                    const imageUrl = game.imageUrl ? `http://localhost:8080/uploads/${game.imageUrl}` : null;
+                    const imageUrl = game.igdbGameId ? game.imageUrl : `http://localhost:8080/uploads/${game.imageUrl}`;
                     return { ...game, imageUrl, status: userGame.status, addedOn: userGame.addedOn, rating: userGame.rating || 0 };
                 });
                 setGames(gamesData);

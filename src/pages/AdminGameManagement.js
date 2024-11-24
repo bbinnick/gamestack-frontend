@@ -37,7 +37,11 @@ const AdminGameManagement = () => {
     const fetchGames = async () => {
         try {
             const response = await authService.getAxiosInstance().get('/games/all-with-users');
-            setGames(response.data);
+            const gamesData = response.data.map(game => ({
+                ...game,
+                imageUrl: game.igdbGameId ? game.imageUrl : `http://localhost:8080/uploads/${game.imageUrl}`
+            }));
+            setGames(gamesData);
         } catch (error) {
             console.error('Error fetching games:', error);
         }
@@ -191,7 +195,7 @@ const AdminGameManagement = () => {
             renderCell: (params) => {
                 return params.row.imageUrl ? (
                     <img
-                        src={`http://localhost:8080/uploads/${params.row.imageUrl}`}
+                        src={params.row.imageUrl}
                         alt={params.row.title}
                         onError={(e) => { e.target.style.display = 'none'; }}
                         style={{ width: '100px', height: 'auto', borderRadius: '5px' }}

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
@@ -115,7 +115,7 @@ MainContent.propTypes = {
 };
 
 export default function MainContent({ games }) {
-  const [focusedCardIndex, setFocusedCardIndex] = React.useState(null);
+  const [focusedCardIndex, setFocusedCardIndex] = useState(null);
   const navigate = useNavigate();
 
   const handleFocus = (index) => {
@@ -133,6 +133,9 @@ export default function MainContent({ games }) {
   const handleCardClick = (gameId) => {
     navigate(`/games/local/${gameId}`);
   };
+
+    // Filter out IGDB games
+    const filteredGames = games.filter(game => !game.igdbGameId);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -176,7 +179,7 @@ export default function MainContent({ games }) {
           <Chip
             onClick={handleFilterClick}
             size="medium"
-            label="Company"
+            label="Popular"
             sx={{
               backgroundColor: 'transparent',
               border: 'none',
@@ -185,7 +188,7 @@ export default function MainContent({ games }) {
           <Chip
             onClick={handleFilterClick}
             size="medium"
-            label="Product"
+            label="New Releases"
             sx={{
               backgroundColor: 'transparent',
               border: 'none',
@@ -205,7 +208,7 @@ export default function MainContent({ games }) {
         </Box>
       </Box>
       <Grid2 container spacing={2}>
-        {games.map((game, index) => (
+        {filteredGames.map((game, index) => (
           <Grid2 key={game.id} xs={12} sm={6} md={4} lg={2.4}>
             <StyledCard
               variant="outlined"

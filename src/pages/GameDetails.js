@@ -41,6 +41,11 @@ const GameDetails = () => {
           response = await authService.getAxiosInstance().get(`/igdb/games/details/${igdbGameId}`);
         } else {
           response = await authService.getAxiosInstance().get(`/games/${gameId}`);
+          if (response.data.igdbGameId) {
+            // Redirect to IGDB endpoint if the game is an IGDB game
+            navigate(`/games/igdb/${response.data.igdbGameId}`);
+            return;
+          }
         }
         setGame(response.data);
       } catch (error) {
@@ -63,7 +68,7 @@ const GameDetails = () => {
     }
 
     fetchGameDetails();
-  }, [gameId, igdbGameId, user]);
+  }, [gameId, igdbGameId, user, navigate]);
 
   const handleAddToBacklog = async () => {
     if (!user) {
@@ -72,9 +77,15 @@ const GameDetails = () => {
     }
 
     try {
-      const id = igdbGameId || gameId;
-      await authService.getAxiosInstance().post(`/games/add-to-backlog/${id}`);
-      console.log('Game added to backlog:', id);
+      if (igdbGameId) {
+        const response = await authService.getAxiosInstance().post('/games/add-igdb-game', game);
+        const addedGame = response.data;
+        await authService.getAxiosInstance().post(`/games/add-to-backlog/${addedGame.id}`);
+        console.log('IGDB game added to backlog:', addedGame.id);
+      } else {
+        await authService.getAxiosInstance().post(`/games/add-to-backlog/${gameId}`);
+        console.log('Game added to backlog:', gameId);
+      }
     } catch (error) {
       console.error('Error adding game to backlog:', error);
     }
@@ -89,11 +100,19 @@ const GameDetails = () => {
     setRating(newValue);
 
     try {
-      const id = igdbGameId || gameId;
-      await authService.getAxiosInstance().post(`/games/${id}/rate`, null, {
-        params: { rating: newValue }
-      });
-      console.log('Rating submitted:', newValue);
+      if (igdbGameId) {
+        const response = await authService.getAxiosInstance().post('/games/add-igdb-game', game);
+        const addedGame = response.data;
+        await authService.getAxiosInstance().post(`/games/${addedGame.id}/rate`, null, {
+          params: { rating: newValue }
+        });
+        console.log('IGDB game rated:', addedGame.id);
+      } else {
+        await authService.getAxiosInstance().post(`/games/${gameId}/rate`, null, {
+          params: { rating: newValue }
+        });
+        console.log('Rating submitted:', newValue);
+      }
     } catch (error) {
       console.error('Error submitting rating:', error);
     }
