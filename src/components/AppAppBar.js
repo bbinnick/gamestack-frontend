@@ -12,6 +12,7 @@ import Drawer from '@mui/material/Drawer';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { useNavigate } from 'react-router-dom';
+import SearchAutocomplete from './SearchAutocomplete';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     display: 'flex',
@@ -51,6 +52,8 @@ export default function AppAppBar({ user, handleLogout }) {
                             )}
                         </Box>
                     </Box>
+                    <SearchAutocomplete />
+
                     <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}>
                         {user ? (
                             <Button color="primary" variant="contained" size="small" onClick={() => handleLogout(navigate)}>

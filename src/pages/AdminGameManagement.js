@@ -175,8 +175,6 @@ const AdminGameManagement = () => {
 
     const gameColumns = [
         {
-            field: 'image',
-            headerName: 'Game Image',
             width: 130,
             renderCell: (params) => {
                 return params.row.imageUrl ? (
@@ -210,7 +208,7 @@ const AdminGameManagement = () => {
         { field: 'platforms', headerName: 'Platforms', width: 150 },
         {
             field: 'actions',
-            headerName: 'Actions',
+            headerName: '',
             width: 150,
             renderCell: (params) => (
                 <Box>
@@ -241,7 +239,7 @@ const AdminGameManagement = () => {
         { field: 'role', headerName: 'Role', width: 150 },
         {
             field: 'actions',
-            headerName: 'Actions',
+            headerName: '',
             width: 150,
             renderCell: (params) => (
                 <Button
