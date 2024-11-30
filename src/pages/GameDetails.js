@@ -6,7 +6,7 @@ import StarIcon from '@mui/icons-material/Star';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import TemplateFrame from '../components/TemplateFrame';
-import { useThemeContext } from '../components/ThemeContext';
+import { useUser } from '../contexts/UserContext';
 import authService from '../services/AuthService';
 
 const labels = {
@@ -27,7 +27,6 @@ function getLabelText(value) {
 }
 
 const GameDetails = () => {
-  const { mode, toggleColorMode } = useThemeContext();
   const { gameId, igdbGameId } = useParams();
   const [game, setGame] = useState(null);
   const [rating, setRating] = useState(0);
@@ -35,7 +34,7 @@ const GameDetails = () => {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('warning');
-  const user = authService.getUser();
+  const { user } = useUser();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -143,12 +142,8 @@ const GameDetails = () => {
   const imageUrl = game.imageUrl ? `http://localhost:8080/uploads/${game.imageUrl}` : (game.coverUrl ? `https://images.igdb.com/igdb/image/upload/t_720p/${game.coverUrl}.jpg` : 'https://via.placeholder.com/800x450');
 
   return (
-    <TemplateFrame
-      mode={mode}
-      toggleColorMode={toggleColorMode}
-      user={user}
-    >
-      <Container>
+    <TemplateFrame>
+      <Container maxWidth='xl'>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
           <CardMedia
             component="img"

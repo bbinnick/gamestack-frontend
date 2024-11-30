@@ -5,14 +5,13 @@ import {
 import { DataGrid } from '@mui/x-data-grid';
 import TemplateFrame from '../components/TemplateFrame';
 import { useNavigate } from 'react-router-dom';
-import { useThemeContext } from '../components/ThemeContext';
 import authService from '../services/AuthService';
 import GameForm from '../components/CreateGameForm';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import Tooltip from '@mui/material/Tooltip';
+import { useUser } from '../contexts/UserContext';
 
 const AdminGameManagement = () => {
-    const { mode, toggleColorMode } = useThemeContext();
     const [game, setGame] = useState({
         title: '',
         platforms: [],
@@ -25,10 +24,22 @@ const AdminGameManagement = () => {
     const [editingGame, setEditingGame] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogAction, setDialogAction] = useState(null);
-    const user = authService.getUser();
+    const { user } = useUser();
     const navigate = useNavigate();
 
     useEffect(() => {
+
+        const fetchUsers = async () => {
+            try {
+                const response = await authService.getAxiosInstance().get('/users/all');
+                const usersData = response.data.filter(u => u.id !== user.user_id);
+                //response.data.filter(u => u.role !== 'ADMIN'); // Filter out the admin user
+                setUsers(usersData);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
+
         if (user) {
             fetchGames();
             fetchUsers();
@@ -47,17 +58,6 @@ const AdminGameManagement = () => {
             setGames(gamesData);
         } catch (error) {
             console.error('Error fetching games:', error);
-        }
-    };
-
-    const fetchUsers = async () => {
-        try {
-            const response = await authService.getAxiosInstance().get('/users/all');
-            const usersData = response.data.filter(u => u.id !== user.user_id);
-            //response.data.filter(u => u.role !== 'ADMIN'); // Filter out the admin user
-            setUsers(usersData);
-        } catch (error) {
-            console.error('Error fetching users:', error);
         }
     };
 
@@ -175,6 +175,8 @@ const AdminGameManagement = () => {
 
     const gameColumns = [
         {
+            field: 'imageUrl',
+            headerName: '',
             width: 130,
             renderCell: (params) => {
                 return params.row.imageUrl ? (
@@ -256,12 +258,8 @@ const AdminGameManagement = () => {
     const paginationModel = { page: 0, pageSize: 10 };
 
     return (
-        <TemplateFrame
-            mode={mode}
-            toggleColorMode={toggleColorMode}
-            user={user}
-        >
-            <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column' }}>
+        <TemplateFrame>
+            <Container maxWidth='xl' sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="h4" gutterBottom>
                     Admin Game Management
                 </Typography>

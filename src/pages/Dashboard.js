@@ -1,24 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { createTheme, ThemeProvider, CssBaseline, Container } from '@mui/material';
-import AppAppBar from '../components/AppAppBar';
 import MainContent from '../components/MainContent';
 import Latest from '../components/Latest';
 import Footer from '../components/Footer';
 import TemplateFrame from '../components/TemplateFrame';
 import getDashboardTheme from '../theme/getDashboardTheme';
-import { useNavigate } from 'react-router-dom';
-import { useThemeContext } from '../components/ThemeContext';
+import { useThemeContext } from '../contexts/ThemeContext';
 import authService from '../services/AuthService';
 
-export default function Dashboard({ user, handleLogout }) {
-    const { mode, toggleColorMode } = useThemeContext();
+export default function Dashboard() {
+    const { mode } = useThemeContext();
     const DashboardTheme = createTheme(getDashboardTheme(mode));
     const [games, setGames] = useState([]);
     const [popularGames, setPopularGames] = useState([]);
     const [newReleases, setNewReleases] = useState([]);
-    const navigate = useNavigate();
 
     useEffect(() => {
+
         const fetchGames = async () => {
             try {
                 const response = await authService.getAxiosInstance().get('/games/all');
@@ -68,15 +66,10 @@ export default function Dashboard({ user, handleLogout }) {
     }, []);
 
     return (
-        <TemplateFrame
-            mode={mode}
-            toggleColorMode={toggleColorMode}
-            user={user}
-        >
+        <TemplateFrame>
             <ThemeProvider theme={DashboardTheme}>
                 <CssBaseline enableColorScheme />
-                <AppAppBar user={user} handleLogout={() => handleLogout(navigate)} />
-                <Container maxWidth={false} component="main" sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}>
+                <Container maxWidth='xl' component="main" sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}>
                     <MainContent games={games} />
                     <Latest title="Popular Games" games={popularGames} />
                     <Latest title="New Releases" games={newReleases} />

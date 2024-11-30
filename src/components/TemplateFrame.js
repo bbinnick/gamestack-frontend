@@ -1,16 +1,22 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useThemeContext } from '../components/ThemeContext';
+import Drawer from '@mui/material/Drawer';
+import MenuItem from '@mui/material/MenuItem';
+import MenuIcon from '@mui/icons-material/Menu';
+import HomeIcon from '@mui/icons-material/Home';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import Menu from '@mui/material/Menu';
+import { useNavigate } from 'react-router-dom';
+import { useThemeContext } from '../contexts/ThemeContext.js';
 import ToggleColorMode from './ToggleColorMode.js';
 import getSignUpTheme from '../theme/getSignUpTheme.js';
+import SearchAutocomplete from './SearchAutocomplete.js';
+import { useUser } from '../contexts/UserContext.js';
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   position: 'relative',
@@ -27,14 +33,31 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
   flex: '0 0 auto',
 }));
 
-function TemplateFrame({ children, user }) {
+function TemplateFrame({ children }) {
   const { mode } = useThemeContext();
+  const { user, handleLogout } = useUser();
   const navigate = useNavigate();
-  const location = useLocation();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const signUpTheme = createTheme(getSignUpTheme(mode));
+  const isMenuOpen = Boolean(menuAnchor);
+
   const handleBackToHome = () => {
     navigate('/');
   };
-  const signUpTheme = createTheme(getSignUpTheme(mode));
+
+  const handleDrawerToggle = () => {
+    setDrawerOpen(!drawerOpen);
+  };
+
+  const handleMenuOpen = (event) => {
+    setMenuAnchor(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
+
 
   return (
     <ThemeProvider theme={signUpTheme}>
@@ -46,64 +69,201 @@ function TemplateFrame({ children, user }) {
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
+              maxWidth: 'xl',
               width: '100%',
               p: '8px 12px',
             }}
           >
-            {location.pathname !== '/' && (
-              <Button
-                variant="text"
-                size="small"
-                aria-label="Back to Dashboard"
-                startIcon={<ArrowBackRoundedIcon />}
-                onClick={handleBackToHome}
-                sx={{ display: { xs: 'none', sm: 'flex' } }}
-              >
-                Back to Dashboard
-              </Button>
-            )}
-            <IconButton
-              size="small"
-              aria-label="Back to Dashboard"
-              onClick={handleBackToHome}
-              sx={{ display: { xs: 'auto', sm: 'none' } }}
-            >
-              <ArrowBackRoundedIcon />
-            </IconButton>
-            <Button
-              variant="text"
-              size="small"
-              aria-label="View Backlog"
-              onClick={() => navigate('/backlog')}
-              sx={{ display: { xs: 'none', sm: 'flex' } }}
-            >
-              Backlog
-            </Button>
-            {user && user.authorities === 'ROLE_ADMIN' && (
-              <Button
-                variant="text"
-                size="small"
-                aria-label="Admin Page"
-                onClick={() => navigate('/admin')}
-                sx={{ display: { xs: 'none', sm: 'flex' } }}
-              >
-                Admin Page
-              </Button>
-            )}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              {user && (
-                <Typography variant="body2" aria-label="username" sx={{ color: 'text.primary' }}>
-                  Logged in as: {user.username}
-                </Typography>
+              <IconButton
+                size="small"
+                aria-label="Home"
+                onClick={handleBackToHome}
+              >
+                <HomeIcon />
+              </IconButton>
+              <IconButton
+                size="small"
+                aria-label="Menu"
+                onClick={handleDrawerToggle}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Box>
+            <SearchAutocomplete />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {user ? (
+                <>
+                  <IconButton
+                    size="small"
+                    aria-label="Account"
+                    onClick={handleMenuOpen}
+                  >
+                    <AccountCircle />
+                  </IconButton>
+                  <Menu
+                    anchorEl={menuAnchor}
+                    open={isMenuOpen}
+                    onClose={handleMenuClose}
+                  >
+                    <MenuItem onClick={() => navigate('/backlog')}>Backlog</MenuItem>
+                    <MenuItem onClick={() => { handleLogout(); handleMenuClose(); }}>Log out</MenuItem>
+                  </Menu>
+                </>
+              ) : (
+                <>
+                  <Button color="primary" variant="text" size="small" onClick={() => navigate('/log-in')}>
+                    Sign in
+                  </Button>
+                  <Button color="primary" variant="contained" size="small" onClick={() => navigate('/sign-up')}>
+                    Sign up
+                  </Button>
+                </>
               )}
               <ToggleColorMode />
             </Box>
           </Toolbar>
         </StyledAppBar>
+        <Drawer
+          anchor="left"
+          open={drawerOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true, // Better open performance on mobile.
+          }}
+          sx={{
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: 250,
+              top: '56px',
+            },
+          }}
+        >
+          <Box sx={{ width: 250 }}>
+            <MenuItem onClick={() => navigate('/backlog')}>Backlog</MenuItem>
+            {user && user.authorities === 'ROLE_ADMIN' && (
+              <MenuItem onClick={() => navigate('/admin')}>Admin</MenuItem>
+            )}
+          </Box>
+        </Drawer>
         <Box sx={{ flex: '1 1', overflow: 'auto' }}>{children}</Box>
       </Box>
-    </ThemeProvider >
+    </ThemeProvider>
   );
 }
+
+
+//   return (
+//     <ThemeProvider theme={signUpTheme}>
+//       <Box sx={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
+//         <StyledAppBar>
+//           <Toolbar
+//             variant="dense"
+//             disableGutters
+//             sx={{
+//               display: 'flex',
+//               justifyContent: 'space-between',
+//               maxWidth: 'xl',
+//               width: '100%',
+//               p: '8px 12px',
+//             }}
+//           >
+//             {location.pathname !== '/' && (
+//               <Button
+//                 variant="text"
+//                 size="small"
+//                 aria-label="Back to Dashboard"
+//                 startIcon={<ArrowBackRoundedIcon />}
+//                 onClick={handleBackToHome}
+//                 sx={{ display: { xs: 'none', sm: 'flex' } }}
+//               >
+//                 Back to Dashboard
+//               </Button>
+//             )}
+//             <SearchAutocomplete />
+//             <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}>
+//               {user ? (
+//                 <Button color="primary" variant="contained" size="small" onClick={() => handleLogout(navigate)}>
+//                   Log out
+//                 </Button>
+//               ) : (
+//                 <>
+//                   <Button color="primary" variant="text" size="small" onClick={() => navigate('/log-in')}>
+//                     Sign in
+//                   </Button>
+//                   <Button color="primary" variant="contained" size="small" onClick={() => navigate('/sign-up')}>
+//                     Sign up
+//                   </Button>
+//                 </>
+//               )}
+//             </Box>
+//             <Box sx={{ display: { sm: 'flex', md: 'none' } }}>
+//               <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
+//                 <MenuIcon />
+//               </IconButton>
+//               <Drawer anchor="top" open={open} onClose={toggleDrawer(false)}>
+//                 <Box sx={{ p: 2, backgroundColor: 'background.default' }}>
+//                   <Box
+//                     sx={{
+//                       display: 'flex',
+//                       alignItems: 'center',
+//                       justifyContent: 'space-between',
+//                     }}
+//                   >
+//                     <IconButton onClick={toggleDrawer(false)}>
+//                       <CloseRoundedIcon />
+//                     </IconButton>
+//                   </Box>
+//                   <Divider sx={{ my: 3 }} />
+//                   <MenuItem>
+//                     <Button color="primary" variant="outlined" fullWidth onClick={() => navigate('/Backlog')}>
+//                       Backlog
+//                     </Button>
+//                   </MenuItem>
+//                   <MenuItem>
+//                     {user && user.authorities === 'ROLE_ADMIN' && (
+//                       <Button variant="text" color="info" size="small" onClick={() => navigate('/admin')}>
+//                         Admin
+//                       </Button>
+//                     )}
+//                   </MenuItem>
+//                   {user ? (
+//                     <MenuItem>
+//                       <Button color="primary" variant="contained" fullWidth onClick={() => handleLogout(navigate)}>
+//                         Log out
+//                       </Button>
+//                     </MenuItem>
+//                   ) : (
+//                     <>
+//                       <MenuItem>
+//                         <Button color="primary" variant="contained" fullWidth onClick={() => navigate('/sign-up')}>
+//                           Sign up
+//                         </Button>
+//                       </MenuItem>
+//                       <MenuItem>
+//                         <Button color="primary" variant="outlined" fullWidth onClick={() => navigate('/log-in')}>
+//                           Sign in
+//                         </Button>
+//                       </MenuItem>
+//                     </>
+//                   )}
+//                 </Box>
+//               </Drawer>
+//             </Box>
+//             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+//               {user && (
+//                 <Typography variant="body2" aria-label="username" sx={{ color: 'text.primary' }}>
+//                   Logged in as: {user.username}
+//                 </Typography>
+//               )}
+//               <ToggleColorMode />
+//             </Box>
+//           </Toolbar>
+//         </StyledAppBar>
+//         <Box sx={{ flex: '1 1', overflow: 'auto' }}>{children}</Box>
+//       </Box>
+//     </ThemeProvider >
+//   );
+// }
 
 export default TemplateFrame;

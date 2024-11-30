@@ -10,7 +10,7 @@ import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import ForgotPassword from './ForgotPassword';
 import TemplateFrame from '../components/TemplateFrame';
-import { useThemeContext } from '../components/ThemeContext';
+import { useUser } from '../contexts/UserContext';
 import authService from '../services/AuthService';
 
 const CardStyled = styled(Card)(({ theme }) => ({
@@ -47,8 +47,8 @@ const LogInContainer = styled(Stack)(({ theme }) => ({
   }),
 }));
 
-export default function LogIn({ setUser }) {
-  const { mode, toggleColorMode } = useThemeContext();
+export default function LogIn() {
+  const { setUser } = useUser();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = useState('');
@@ -111,10 +111,7 @@ export default function LogIn({ setUser }) {
   };
 
   return (
-    <TemplateFrame
-      mode={mode}
-      toggleColorMode={toggleColorMode}
-    >
+    <TemplateFrame>
       <CssBaseline enableColorScheme />
       <LogInContainer direction="column" justifyContent="space-between">
         <CardStyled variant="outlined">

@@ -3,7 +3,7 @@ import IconButton from '@mui/material/IconButton';
 
 import ModeNightRoundedIcon from '@mui/icons-material/ModeNightRounded';
 import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
-import { useThemeContext } from './ThemeContext';
+import { useThemeContext } from '../contexts/ThemeContext';
 
 function ToggleColorMode(props) {
   const { mode, toggleColorMode } = useThemeContext();

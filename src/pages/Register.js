@@ -6,7 +6,8 @@ import { MenuItem, Select } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import getSignUpTheme from '../theme/getSignUpTheme.js';
 import TemplateFrame from '../components/TemplateFrame.js';
-import { useThemeContext } from '../components/ThemeContext';
+import { useThemeContext } from '../contexts/ThemeContext.js';
+import { useUser } from '../contexts/UserContext.js';
 import authService from '../services/AuthService.js';
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -43,8 +44,9 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
   }),
 }));
 
-export default function SignUp({ setUser }) {
-  const { mode, toggleColorMode } = useThemeContext();
+export default function SignUp() {
+  const { mode } = useThemeContext();
+  const { setUser } = useUser();
   const SignUpTheme = createTheme(getSignUpTheme(mode));
   const [nameError, setNameError] = useState(false);
   const [nameErrorMessage, setNameErrorMessage] = useState('');
@@ -111,7 +113,7 @@ export default function SignUp({ setUser }) {
       if (!token) {
         throw new Error('Token not found in response');
       }
-      console.log('User registered successfully:', token);
+      console.log(`User registered successfully: Username - ${user.username}, Email - ${user.email}`);
       authService.setToken(token);
       setUser(authService.getUser()); // Update the user state
       navigate('/');
@@ -127,10 +129,7 @@ export default function SignUp({ setUser }) {
   };
 
   return (
-    <TemplateFrame
-      mode={mode}
-      toggleColorMode={toggleColorMode}
-    >
+    <TemplateFrame>
       <ThemeProvider theme={SignUpTheme}>
         <CssBaseline enableColorScheme />
         <SignUpContainer direction="column" justifyContent="space-between">

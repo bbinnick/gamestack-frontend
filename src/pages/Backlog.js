@@ -24,16 +24,15 @@ import StarIcon from '@mui/icons-material/Star';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import TemplateFrame from '../components/TemplateFrame';
 import { useNavigate } from 'react-router-dom';
-import { useThemeContext } from '../components/ThemeContext';
+import { useUser } from '../contexts/UserContext';
 import authService from '../services/AuthService';
 
 const BacklogPage = () => {
-    const { mode, toggleColorMode } = useThemeContext();
     const [games, setGames] = useState([]);
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogAction, setDialogAction] = useState(null);
-    const user = authService.getUser();
+    const { user } = useUser();
     const navigate = useNavigate();
 
     // Fetch user's game backlog
@@ -189,12 +188,8 @@ const BacklogPage = () => {
     };
 
     return (
-        <TemplateFrame
-            mode={mode}
-            toggleColorMode={toggleColorMode}
-            user={user}
-        >
-            <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column' }}>
+        <TemplateFrame>
+            <Container maxWidth='xl' sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 5 }}>
                     <Typography variant="h4" component="h1">
                         My Game Backlog
