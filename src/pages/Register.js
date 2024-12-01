@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Box, Button, CssBaseline, FormLabel, FormControl, Link, TextField, Typography, Stack } from '@mui/material';
+import { Box, Button, CssBaseline, FormLabel, FormControl, Link, TextField, Typography, Stack, Snackbar, Alert } from '@mui/material';
 import MuiCard from '@mui/material/Card';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 import { MenuItem, Select } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import getSignUpTheme from '../theme/getSignUpTheme.js';
 import TemplateFrame from '../components/TemplateFrame.js';
-import { useThemeContext } from '../components/ThemeContext';
+import { useThemeContext } from '../contexts/ThemeContext.js';
+import { useUser } from '../contexts/UserContext.js';
 import authService from '../services/AuthService.js';
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -43,8 +44,9 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
   }),
 }));
 
-export default function SignUp({ setUser }) {
-  const { mode, toggleColorMode } = useThemeContext();
+export default function SignUp() {
+  const { mode } = useThemeContext();
+  const { setUser } = useUser();
   const SignUpTheme = createTheme(getSignUpTheme(mode));
   const [nameError, setNameError] = useState(false);
   const [nameErrorMessage, setNameErrorMessage] = useState('');
@@ -53,7 +55,14 @@ export default function SignUp({ setUser }) {
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
   const [role, setRole] = useState('USER');
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('error');
   const navigate = useNavigate();
+
+  const handleAlertClose = () => {
+    setAlertOpen(false);
+  };
 
   const validateInputs = () => {
     const email = document.getElementById('email');
@@ -111,28 +120,41 @@ export default function SignUp({ setUser }) {
       if (!token) {
         throw new Error('Token not found in response');
       }
-      console.log('User registered successfully:', token);
+      console.log(`User registered successfully: Username - ${user.username}, Email - ${user.email}`);
       authService.setToken(token);
       setUser(authService.getUser()); // Update the user state
       navigate('/');
     } catch (error) {
       if (error.response) {
         console.error('Server responded with an error:', error.response.data);
+        setAlertMessage(error.response.data.message || 'Registration failed.');
       } else if (error.request) {
         console.error('No response received:', error.request);
+        setAlertMessage('No response from server.');
       } else {
         console.error('Error setting up request:', error.message);
+        setAlertMessage('Error setting up request.');
       }
+      setAlertSeverity('error');
+      setAlertOpen(true);
     }
   };
 
   return (
-    <TemplateFrame
-      mode={mode}
-      toggleColorMode={toggleColorMode}
-    >
+    <TemplateFrame>
       <ThemeProvider theme={SignUpTheme}>
         <CssBaseline enableColorScheme />
+        <Snackbar
+        open={alertOpen}
+        autoHideDuration={6000}
+        onClose={handleAlertClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ mt: 8 }}
+      >
+        <Alert onClose={handleAlertClose} severity={alertSeverity} sx={{ width: '100%' }}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
         <SignUpContainer direction="column" justifyContent="space-between">
           <Card variant="outlined">
             <Typography

@@ -24,16 +24,16 @@ import StarIcon from '@mui/icons-material/Star';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import TemplateFrame from '../components/TemplateFrame';
 import { useNavigate } from 'react-router-dom';
-import { useThemeContext } from '../components/ThemeContext';
+import { useUser } from '../contexts/UserContext';
 import authService from '../services/AuthService';
 
 const BacklogPage = () => {
-    const { mode, toggleColorMode } = useThemeContext();
     const [games, setGames] = useState([]);
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogAction, setDialogAction] = useState(null);
-    const user = authService.getUser();
+    const [selectedGames, setSelectedGames] = useState([]);
+    const { user } = useUser();
     const navigate = useNavigate();
 
     // Fetch user's game backlog
@@ -57,23 +57,23 @@ const BacklogPage = () => {
         }
     }, [user]);
 
-    // Remove game from backlog
-    const handleDeleteGame = (gameId) => {
-        setDialogAction({ type: 'delete', gameId });
+    // Remove game(s) from backlog
+    const handleRemoveSelectedGames = () => {
+        setDialogAction('deleteSelectedGames');
         setDialogOpen(true);
     };
 
     const handleConfirmAction = async () => {
-        if (dialogAction.type === 'delete') {
+        if (dialogAction === 'deleteSelectedGames') {
             try {
-                await authService.getAxiosInstance().delete(`/games/remove-from-backlog/${dialogAction.gameId}`);
-                console.log('Game removed from backlog:', dialogAction.gameId);
-                setGames(prevGames => prevGames.filter(game => game.id !== dialogAction.gameId));
+                await Promise.all(selectedGames.map(gameId => authService.getAxiosInstance().delete(`/games/remove-from-backlog/${gameId}`)));
+                console.log('Selected games removed from backlog:', selectedGames);
+                setGames(prevGames => prevGames.filter(game => !selectedGames.includes(game.id)));
+                setSelectedGames([]);
             } catch (error) {
-                console.error('Error removing game from backlog:', error);
+                console.error('Error removing selected games from backlog:', error);
             }
         }
-
         setDialogOpen(false);
     };
 
@@ -103,7 +103,7 @@ const BacklogPage = () => {
         {
             field: 'image',
             headerName: 'Game Image',
-            width: 130,
+            flex: 1,
             renderCell: (params) => {
                 return params.row.imageUrl ? (
                     <img
@@ -122,7 +122,7 @@ const BacklogPage = () => {
         {
             field: 'title',
             headerName: 'Title',
-            width: 200,
+            flex: 1,
             renderCell: (params) => (
                 <Button
                     color="primary"
@@ -132,12 +132,12 @@ const BacklogPage = () => {
                 </Button>
             ),
         },
-        { field: 'genres', headerName: 'Genres', width: 150 },
-        { field: 'platforms', headerName: 'Platforms', width: 150 },
+        { field: 'genres', headerName: 'Genres', flex: 1 },
+        { field: 'platforms', headerName: 'Platforms', flex: 1 },
         {
             field: 'status',
             headerName: 'Status',
-            width: 150,
+            flex: 1,
             renderCell: (params) => (
                 <Select
                     value={params.row.status}
@@ -154,7 +154,7 @@ const BacklogPage = () => {
         {
             field: 'rating',
             headerName: 'Rating',
-            width: 150,
+            flex: 1,
             renderCell: (params) => (
                 <Rating
                     name={`rating-${params.row.id}`}
@@ -165,21 +165,7 @@ const BacklogPage = () => {
                 />
             ),
         },
-        { field: 'addedOn', headerName: 'Added On', width: 150 },
-        {
-            field: 'actions',
-            headerName: 'Actions',
-            width: 150,
-            renderCell: (params) => (
-                <Button
-                    color="error"
-                    variant="contained"
-                    onClick={() => handleDeleteGame(params.row.id)}
-                >
-                    Remove
-                </Button>
-            ),
-        },
+        { field: 'addedOn', headerName: 'Added On', flex: 1 },
     ];
 
     const paginationModel = { page: 0, pageSize: 10 };
@@ -188,13 +174,17 @@ const BacklogPage = () => {
         setViewMode(viewMode === 'table' ? 'cards' : 'table');
     };
 
+    const getStatusColor = (status) => ({
+        'Not Started': 'grey',
+        'In Progress': 'blue',
+        'Completed': 'green',
+        'Replay': 'orange',
+        'Wishlist': 'purple'
+    }[status] || 'grey');
+
     return (
-        <TemplateFrame
-            mode={mode}
-            toggleColorMode={toggleColorMode}
-            user={user}
-        >
-            <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column' }}>
+        <TemplateFrame>
+            <Container maxWidth='xl' sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 5 }}>
                     <Typography variant="h4" component="h1">
                         My Game Backlog
@@ -205,10 +195,24 @@ const BacklogPage = () => {
                 </Box>
 
                 {viewMode === 'table' ? (
-                    <Box sx={{ flexGrow: 1, mt: 4, display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ height: 'auto', mt: 4 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                            <Button
+                                color="error"
+                                variant="contained"
+                                onClick={handleRemoveSelectedGames}
+                                disabled={selectedGames.length === 0}
+                            >
+                                Remove Selected Games
+                            </Button>
+                        </Box>
                         <DataGrid
                             rows={games}
                             columns={columns}
+                            checkboxSelection
+                            onRowSelectionModelChange={(newSelection) => {
+                                setSelectedGames(newSelection);
+                            }}
                             initialState={{ pagination: { paginationModel } }}
                             pageSizeOptions={[10, 15, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
@@ -219,7 +223,7 @@ const BacklogPage = () => {
                     <Grid2 container spacing={4} sx={{ mt: 4 }}>
                         {games.map(game => (
                             <Grid2 key={game.id} xs={12} sm={6} md={4}>
-                                <Card sx={{ maxWidth: 345 }} onClick={() => handleDetailNavigation(game.id)}>
+                                <Card sx={{ maxWidth: 345, position: 'relative', cursor: 'pointer' }} onClick={() => handleDetailNavigation(game.id)}>
                                     {game.imageUrl ? (
                                         <CardMedia
                                             component="img"
@@ -227,7 +231,7 @@ const BacklogPage = () => {
                                             image={game.imageUrl}
                                             sx={{
                                                 width: '100%',
-                                                height: 200,
+                                                height: 'auto',
                                                 objectFit: 'cover',
                                             }}
                                         />
@@ -240,16 +244,7 @@ const BacklogPage = () => {
                                         <Typography gutterBottom variant="h5" component="div">
                                             {game.title}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Genres: {game.genres.join(', ')}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Platforms: {game.platforms.join(', ')}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Status: {game.status}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                             Added On: {game.addedOn}
                                         </Typography>
                                         <Rating
@@ -260,6 +255,19 @@ const BacklogPage = () => {
                                             emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
                                         />
                                     </CardContent>
+                                    <Box sx={{
+                                        position: 'absolute',
+                                        bottom: 16,
+                                        right: 16,
+                                        bgcolor: getStatusColor(game.status),
+                                        color: 'white',
+                                        px: 2,
+                                        py: 0.5,
+                                        borderRadius: 1,
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {game.status}
+                                    </Box>
                                 </Card>
                             </Grid2>
                         ))}
@@ -273,7 +281,7 @@ const BacklogPage = () => {
                 aria-describedby="alert-dialog-description"
             >
                 <DialogTitle id="alert-dialog-title">
-                    Confirm Delete
+                    Confirm Removal
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">

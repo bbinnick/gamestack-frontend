@@ -8,13 +8,8 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
-import FormControl from '@mui/material/FormControl';
-import InputAdornment from '@mui/material/InputAdornment';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import { styled } from '@mui/material/styles';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
-import SearchAutocomplete from './SearchAutocomplete';
 import { useNavigate } from 'react-router-dom';
 import Grid2 from '@mui/material/Grid2';
 
@@ -46,7 +41,7 @@ const StyledCardContent = styled(CardContent)({
   },
 });
 
-// Author component to display the author(s) of the game if i decide to add it
+// Author component to display the author(s) of a review for games. Not implemented yet.
 function Author({ authors }) {
   return (
     <Box
@@ -89,27 +84,7 @@ Author.propTypes = {
     }),
   ).isRequired,
 };
-
-export function Search() {
-  return (
-    <FormControl sx={{ width: { xs: '100%', md: '25ch' } }} variant="outlined">
-      <OutlinedInput
-        size="small"
-        id="search"
-        placeholder="Search…"
-        sx={{ flexGrow: 1 }}
-        startAdornment={
-          <InputAdornment position="start" sx={{ color: 'text.primary' }}>
-            <SearchRoundedIcon fontSize="small" />
-          </InputAdornment>
-        }
-        inputProps={{
-          'aria-label': 'search',
-        }}
-      />
-    </FormControl>
-  );
-}
+// end of Author component
 
 MainContent.propTypes = {
   games: PropTypes.array.isRequired,
@@ -142,10 +117,10 @@ export default function MainContent({ games }) {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div>
         <Typography variant="h1" gutterBottom>
-          Featured Games
+          Explore our selection of games
         </Typography>
-        <Typography variant="h3">Explore our selection of games</Typography>
       </div>
+      {/* Filter chips. Not implemented yet */}
       <Box
         sx={{
           display: 'flex',
@@ -196,50 +171,54 @@ export default function MainContent({ games }) {
         >
         </Box>
       </Box>
-      <SearchAutocomplete />
-      <Grid2 container spacing={2}>
-        {filteredGames.map((game, index) => (
-          <Grid2 key={game.id} xs={12} sm={6} md={4} lg={2.4}>
-            <StyledCard
-              variant="outlined"
-              onFocus={() => handleFocus(index)}
-              onBlur={handleBlur}
-              tabIndex={0}
-              className={focusedCardIndex === index ? 'Mui-focused' : ''}
-              onClick={() => handleCardClick(game.id)}
-            >
-              {game.imageUrl ? (
-                <CardMedia
-                  component="img"
-                  alt={game.title}
-                  image={game.imageUrl}
-                  onError={(e) => { e.target.style.display = 'none'; }}
-                  sx={{
-                    width: '100%',
-                    height: 200,
-                    objectFit: 'cover',
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
-                  }}
-                />
-              ) : (
-                <Box sx={{ width: '100%', height: 200, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#f0f0f0' }}>
-                  <ImageNotSupportedIcon color="disabled" />
-                </Box>
-              )}
-              <StyledCardContent>
-                <Typography gutterBottom variant="h6" component="div">
-                  {game.title}
-                </Typography>
-                <Typography gutterBottom variant="caption" component="div">
-                  Genre: {game.genre}
-                </Typography>
-              </StyledCardContent>
-              {/* <Author authors={cardData[5].authors} /> */}
-            </StyledCard>
-          </Grid2>
-        ))}
-      </Grid2>
+      <Box>
+        <Typography variant="h4" gutterBottom>
+          Featured Games
+        </Typography>
+        <Grid2 container spacing={2}>
+          {filteredGames.map((game, index) => (
+            <Grid2 key={game.id} xs={12} sm={6} md={4} lg={2.4}>
+              <StyledCard
+                variant="outlined"
+                onFocus={() => handleFocus(index)}
+                onBlur={handleBlur}
+                tabIndex={0}
+                className={focusedCardIndex === index ? 'Mui-focused' : ''}
+                onClick={() => handleCardClick(game.id)}
+              >
+                {game.imageUrl ? (
+                  <CardMedia
+                    component="img"
+                    alt={game.title}
+                    image={game.imageUrl}
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                    sx={{
+                      width: '100%',
+                      height: 200,
+                      objectFit: 'cover',
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  />
+                ) : (
+                  <Box sx={{ width: '100%', height: 200, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#f0f0f0' }}>
+                    <ImageNotSupportedIcon color="disabled" />
+                  </Box>
+                )}
+                <StyledCardContent>
+                  <Typography gutterBottom variant="h6" component="div">
+                    {game.title}
+                  </Typography>
+                  <Typography gutterBottom variant="subtitle2" component="div">
+                    Rating: {game.rating !== undefined ? game.rating.toFixed(2) : 'N/A'}
+                  </Typography>
+                </StyledCardContent>
+                {/* <Author authors={cardData[5].authors} /> */}
+              </StyledCard>
+            </Grid2>
+          ))}
+        </Grid2>
+      </Box>
     </Box>
   );
 }

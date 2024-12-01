@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import Register from './pages/Register';
 import LogIn from './pages/LogIn';
@@ -6,30 +6,11 @@ import Dashboard from './pages/Dashboard';
 import Backlog from './pages/Backlog';
 import GameDetails from './pages/GameDetails';
 import AdminGameManagement from './pages/AdminGameManagement';
-import authService from './services/AuthService';
-
+import { UserProvider, useUser } from './contexts/UserContext';
 
 function App() {
-  const [user, setUser] = useState(authService.getUser());
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      const decodedUser = authService.getUser();
-      setUser(decodedUser);
-    }
-  }, []);
-
-  const handleLogout = (navigate) => {
-    if (window.confirm('Are you sure you want to log out?')) {
-      authService.removeToken();
-      setUser(null);
-      console.log(`${user.username} logged out`);
-      navigate('/log-in');
-    }
-  };
-
   const RequireAuth = ({ children, role }) => {
+    const { user } = useUser();
     if (!user) {
       return <Navigate to="/log-in" />;
     }
@@ -38,33 +19,35 @@ function App() {
     }
     return children;
   };
-
   return (
+
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Dashboard user={user} handleLogout={handleLogout} />} />
-        <Route path="/sign-up" element={<Register setUser={setUser} />} />
-        <Route path="/log-in" element={<LogIn setUser={setUser} />} />
-        <Route
-          path="/backlog"
-          element={
-            <RequireAuth user={user}>
-              <Backlog user={user} />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <RequireAuth role="ROLE_ADMIN" user={user}>
-              <AdminGameManagement user={user} />
-            </RequireAuth>
-          }
-        />
-        <Route path="/games/local/:gameId" element={<GameDetails user={user} />} />
-        <Route path="/games/igdb/:igdbGameId" element={<GameDetails user={user} />} />
-        {/* Other routes */}
-      </Routes>
+      <UserProvider>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/sign-up" element={<Register />} />
+          <Route path="/log-in" element={<LogIn />} />
+          <Route
+            path="/backlog"
+            element={
+              <RequireAuth>
+                <Backlog />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <RequireAuth role="ROLE_ADMIN">
+                <AdminGameManagement />
+              </RequireAuth>
+            }
+          />
+          <Route path="/games/local/:gameId" element={<GameDetails />} />
+          <Route path="/games/igdb/:igdbGameId" element={<GameDetails />} />
+          {/* Other routes */}
+        </Routes>
+      </UserProvider>
     </BrowserRouter>
   );
 }

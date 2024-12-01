@@ -52,7 +52,7 @@ export default function Latest({ title, games }) {
       </Typography>
       <Grid2 container spacing={2}>
         {games.map((igdbGame) => (
-          <Grid2 key={igdbGame.id} xs={12} sm={6} md={4} lg={3}>
+          <Grid2 key={igdbGame.id} xs={12} sm={6} md={4}>
             <StyledCard
               variant="outlined"
               onClick={() => handleCardClick(igdbGame.id)}
@@ -65,7 +65,7 @@ export default function Latest({ title, games }) {
                   onError={(e) => { e.target.style.display = 'none'; }}
                   sx={{
                     width: '100%',
-                    height: 200,
+                    height: 'auto',
                     objectFit: 'cover',
                     borderBottom: '1px solid',
                     borderColor: 'divider',
@@ -80,7 +80,7 @@ export default function Latest({ title, games }) {
                 <Typography gutterBottom variant="h6" component="div">
                   {igdbGame.name}
                 </Typography>
-                <Typography gutterBottom variant="caption" component="div">
+                <Typography gutterBottom variant="subtitle2" component="div">
                   Rating: {igdbGame.rating !== undefined ? igdbGame.rating.toFixed(2) : 'N/A'}
                 </Typography>
               </StyledCardContent>

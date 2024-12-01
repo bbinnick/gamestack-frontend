@@ -23,7 +23,7 @@ export default function Footer() {
         <React.Fragment>
             <Divider />
             <Container
-                maxWidth={false}
+                maxWidth='xl'
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
