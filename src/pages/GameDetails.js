@@ -6,6 +6,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import StarIcon from '@mui/icons-material/Star';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import { Gauge } from '@mui/x-charts/Gauge';
 import TemplateFrame from '../components/TemplateFrame';
 import { useUser } from '../contexts/UserContext';
 import authService from '../services/AuthService';
@@ -145,7 +146,7 @@ const GameDetails = () => {
 
   const platforms = game.platforms ? game.platforms.join(', ') : 'Unknown Platform';
   const genres = game.genres ? game.genres.join(', ') : 'Unknown Genre';
-  const igdbRating = game.rating ? game.rating.toFixed(2) : 'N/A';
+  const igdbRating = game.rating ? parseFloat(game.rating.toFixed(2)) : 0;
   const imageUrl = game.imageUrl ? `http://localhost:8080/uploads/${game.imageUrl}` : (game.coverUrl ? `https://images.igdb.com/igdb/image/upload/t_720p/${game.coverUrl}.jpg` : 'https://via.placeholder.com/800x450');
 
   return (
@@ -180,32 +181,40 @@ const GameDetails = () => {
               borderColor: 'divider',
             }}
           />
-          <Typography variant="h4" component="h1" gutterBottom>
-            {game.title || game.name || 'Unknown Title'}
-          </Typography>
-          <Typography variant="h6">Platforms: {platforms}</Typography>
-          <Typography variant="h6">Genres: {genres}</Typography>
-          <Typography variant="h6">IGDB Rating: {igdbRating}</Typography>
-          <Typography variant="body1" sx={{ mt: 2 }}>
-            {game.summary || 'No description available.'}
-          </Typography>
-          <Rating
-            name="hover-feedback"
-            value={rating}
-            precision={0.5}
-            getLabelText={getLabelText}
-            onChange={handleRatingChange}
-            onChangeActive={(event, newHover) => {
-              setHover(newHover);
-            }}
-            emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
-          />
-          {rating !== null && (
-            <Box sx={{ ml: 2 }}>{labels[hover !== -1 ? hover : rating]}</Box>
-          )}
-          <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleAddToBacklog}>
-            Add to Backlog
-          </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h2" component="h1" gutterBottom sx={{ textDecoration: 'underline' }}>
+                {game.title || game.name || 'Unknown Title'}
+              </Typography>
+              <Typography variant="subtitle1"><strong>Platforms:</strong> {platforms}</Typography>
+              <Typography variant="subtitle1"><strong>Genres:</strong> {genres}</Typography>
+              <Typography variant="subtitle1" sx={{ mt: 4 }}>
+                {game.summary || 'No description available.'}
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <Button variant="contained" color="primary" onClick={handleAddToBacklog}>
+                  Add to Backlog
+                </Button>
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', ml: 2 }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>IGDB Rating</Typography>
+              <Gauge value={igdbRating} max={100} label="IGDB Rating" sx={{ width: '100%', maxWidth: 200, height: 100, textAlign: 'center', mb: 2 }} />
+              <Typography variant="h6" sx={{ mb: 1 }}>User Ratings</Typography>
+              <Rating
+                name="hover-feedback"
+                value={rating}
+                precision={0.5}
+                getLabelText={getLabelText}
+                onChange={handleRatingChange}
+                onChangeActive={(event, newHover) => setHover(newHover)}
+                emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+              />
+              {rating !== null && (
+                <Box sx={{ mt: 1 }}>{labels[hover !== -1 ? hover : rating]}</Box>
+              )}
+            </Box>
+          </Box>
         </Box>
       </Container>
     </TemplateFrame>

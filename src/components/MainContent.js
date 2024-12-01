@@ -209,8 +209,8 @@ export default function MainContent({ games }) {
                   <Typography gutterBottom variant="h6" component="div">
                     {game.title}
                   </Typography>
-                  <Typography gutterBottom variant="caption" component="div">
-                    Genre: {game.genre}
+                  <Typography gutterBottom variant="subtitle2" component="div">
+                    Rating: {game.rating !== undefined ? game.rating.toFixed(2) : 'N/A'}
                   </Typography>
                 </StyledCardContent>
                 {/* <Author authors={cardData[5].authors} /> */}

@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { createTheme, ThemeProvider, CssBaseline, Container } from '@mui/material';
+import { CssBaseline, Container } from '@mui/material';
 import MainContent from '../components/MainContent';
 import Latest from '../components/Latest';
 import Footer from '../components/Footer';
 import TemplateFrame from '../components/TemplateFrame';
-import getDashboardTheme from '../theme/getDashboardTheme';
-import { useThemeContext } from '../contexts/ThemeContext';
 import authService from '../services/AuthService';
 
 export default function Dashboard() {
-    const { mode } = useThemeContext();
-    const DashboardTheme = createTheme(getDashboardTheme(mode));
     const [games, setGames] = useState([]);
     const [popularGames, setPopularGames] = useState([]);
     const [newReleases, setNewReleases] = useState([]);
@@ -67,15 +63,13 @@ export default function Dashboard() {
 
     return (
         <TemplateFrame>
-            <ThemeProvider theme={DashboardTheme}>
-                <CssBaseline enableColorScheme />
-                <Container maxWidth='xl' component="main" sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}>
-                    <MainContent games={games} />
-                    <Latest title="Popular Games" games={popularGames} />
-                    <Latest title="New Releases" games={newReleases} />
-                </Container>
-                <Footer />
-            </ThemeProvider>
+            <CssBaseline enableColorScheme />
+            <Container maxWidth='xl' component="main" sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}>
+                <MainContent games={games} />
+                <Latest title="Popular Games" games={popularGames} />
+                <Latest title="New Releases" games={newReleases} />
+            </Container>
+            <Footer />
         </TemplateFrame>
     );
 }

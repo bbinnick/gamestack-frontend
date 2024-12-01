@@ -80,7 +80,7 @@ export default function Latest({ title, games }) {
                 <Typography gutterBottom variant="h6" component="div">
                   {igdbGame.name}
                 </Typography>
-                <Typography gutterBottom variant="caption" component="div">
+                <Typography gutterBottom variant="subtitle2" component="div">
                   Rating: {igdbGame.rating !== undefined ? igdbGame.rating.toFixed(2) : 'N/A'}
                 </Typography>
               </StyledCardContent>

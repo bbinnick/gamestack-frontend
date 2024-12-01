@@ -1,7 +1,7 @@
 import React, { createContext, useState, useMemo, useContext, useEffect } from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import getRegisterTheme from '../theme/getRegisterTheme';
+import { getDesignTokens } from '../theme/themePrimitives';
 
 const ThemeContext = createContext();
 
@@ -28,7 +28,7 @@ export const ThemeContextProvider = ({ children }) => {
             return newMode;
         });
     };
-    const theme = useMemo(() => createTheme(getRegisterTheme(mode)), [mode]);
+    const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
 
     return (
         <ThemeContext.Provider value={{ mode, toggleColorMode }}>
