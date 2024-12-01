@@ -117,10 +117,10 @@ export default function MainContent({ games }) {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div>
         <Typography variant="h1" gutterBottom>
-          Featured Games
+          Explore our selection of games
         </Typography>
-        <Typography variant="h3">Explore our selection of games</Typography>
       </div>
+      {/* Filter chips. Not implemented yet */}
       <Box
         sx={{
           display: 'flex',
@@ -171,49 +171,54 @@ export default function MainContent({ games }) {
         >
         </Box>
       </Box>
-      <Grid2 container spacing={2}>
-        {filteredGames.map((game, index) => (
-          <Grid2 key={game.id} xs={12} sm={6} md={4} lg={2.4}>
-            <StyledCard
-              variant="outlined"
-              onFocus={() => handleFocus(index)}
-              onBlur={handleBlur}
-              tabIndex={0}
-              className={focusedCardIndex === index ? 'Mui-focused' : ''}
-              onClick={() => handleCardClick(game.id)}
-            >
-              {game.imageUrl ? (
-                <CardMedia
-                  component="img"
-                  alt={game.title}
-                  image={game.imageUrl}
-                  onError={(e) => { e.target.style.display = 'none'; }}
-                  sx={{
-                    width: '100%',
-                    height: 200,
-                    objectFit: 'cover',
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
-                  }}
-                />
-              ) : (
-                <Box sx={{ width: '100%', height: 200, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#f0f0f0' }}>
-                  <ImageNotSupportedIcon color="disabled" />
-                </Box>
-              )}
-              <StyledCardContent>
-                <Typography gutterBottom variant="h6" component="div">
-                  {game.title}
-                </Typography>
-                <Typography gutterBottom variant="caption" component="div">
-                  Genre: {game.genre}
-                </Typography>
-              </StyledCardContent>
-              {/* <Author authors={cardData[5].authors} /> */}
-            </StyledCard>
-          </Grid2>
-        ))}
-      </Grid2>
+      <Box>
+        <Typography variant="h4" gutterBottom>
+          Featured Games
+        </Typography>
+        <Grid2 container spacing={2}>
+          {filteredGames.map((game, index) => (
+            <Grid2 key={game.id} xs={12} sm={6} md={4} lg={2.4}>
+              <StyledCard
+                variant="outlined"
+                onFocus={() => handleFocus(index)}
+                onBlur={handleBlur}
+                tabIndex={0}
+                className={focusedCardIndex === index ? 'Mui-focused' : ''}
+                onClick={() => handleCardClick(game.id)}
+              >
+                {game.imageUrl ? (
+                  <CardMedia
+                    component="img"
+                    alt={game.title}
+                    image={game.imageUrl}
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                    sx={{
+                      width: '100%',
+                      height: 200,
+                      objectFit: 'cover',
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  />
+                ) : (
+                  <Box sx={{ width: '100%', height: 200, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#f0f0f0' }}>
+                    <ImageNotSupportedIcon color="disabled" />
+                  </Box>
+                )}
+                <StyledCardContent>
+                  <Typography gutterBottom variant="h6" component="div">
+                    {game.title}
+                  </Typography>
+                  <Typography gutterBottom variant="caption" component="div">
+                    Genre: {game.genre}
+                  </Typography>
+                </StyledCardContent>
+                {/* <Author authors={cardData[5].authors} /> */}
+              </StyledCard>
+            </Grid2>
+          ))}
+        </Grid2>
+      </Box>
     </Box>
   );
 }

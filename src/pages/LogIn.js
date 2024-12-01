@@ -5,6 +5,8 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import Link from '@mui/material/Link';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import { Box, Button, TextField, Typography, Stack, Card } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -56,6 +58,9 @@ export default function LogIn() {
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
   const [open, setOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('error');
 
   const navigate = useNavigate();
 
@@ -65,6 +70,10 @@ export default function LogIn() {
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleAlertClose = () => {
+    setAlertOpen(false);
   };
 
   const validateInputs = () => {
@@ -107,12 +116,26 @@ export default function LogIn() {
       navigate('/');
     } catch (error) {
       console.error('There was an error logging in the user:', error);
+      setAlertMessage('Invalid email or password.');
+      setAlertSeverity('error');
+      setAlertOpen(true);
     }
   };
 
   return (
     <TemplateFrame>
       <CssBaseline enableColorScheme />
+      <Snackbar
+        open={alertOpen}
+        autoHideDuration={6000}
+        onClose={handleAlertClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ mt: 8 }}
+      >
+        <Alert onClose={handleAlertClose} severity={alertSeverity} sx={{ width: '100%' }}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
       <LogInContainer direction="column" justifyContent="space-between">
         <CardStyled variant="outlined">
           <Typography

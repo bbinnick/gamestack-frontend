@@ -196,7 +196,7 @@ const AdminGameManagement = () => {
         {
             field: 'title',
             headerName: 'Title',
-            width: 200,
+            flex: 1,
             renderCell: (params) => (
                 <Button
                     color="primary"
@@ -206,12 +206,12 @@ const AdminGameManagement = () => {
                 </Button>
             ),
         },
-        { field: 'genres', headerName: 'Genres', width: 150 },
-        { field: 'platforms', headerName: 'Platforms', width: 150 },
+        { field: 'genres', headerName: 'Genres', flex: 1 },
+        { field: 'platforms', headerName: 'Platforms', flex: 1 },
         {
             field: 'actions',
             headerName: '',
-            width: 150,
+            flex: 1,
             renderCell: (params) => (
                 <Box>
                     <Button
@@ -236,13 +236,13 @@ const AdminGameManagement = () => {
 
     const userColumns = [
         { field: 'id', headerName: 'ID', width: 90 },
-        { field: 'username', headerName: 'Username', width: 150 },
-        { field: 'email', headerName: 'Email', width: 200 },
-        { field: 'role', headerName: 'Role', width: 150 },
+        { field: 'username', headerName: 'Username', flex: 1 },
+        { field: 'email', headerName: 'Email', flex: 1 },
+        { field: 'role', headerName: 'Role', flex: 1 },
         {
             field: 'actions',
             headerName: '',
-            width: 150,
+            flex: 1,
             renderCell: (params) => (
                 <Button
                     color="error"
@@ -276,7 +276,7 @@ const AdminGameManagement = () => {
                     <Typography variant="h5" gutterBottom>
                         All Games
                     </Typography>
-                    <Box sx={{ height: 500, width: '100%', mt: 4 }}>
+                    <Box sx={{ height: 'auto', width: '100%', mt: 4 }}>
                         <DataGrid
                             rows={games}
                             columns={gameColumns}
@@ -290,7 +290,7 @@ const AdminGameManagement = () => {
                     <Typography variant="h5" gutterBottom>
                         All Users
                     </Typography>
-                    <Box sx={{ height: 500, width: '100%', mt: 4 }}>
+                    <Box sx={{ height: 'auto', width: '100%', mt: 4 }}>
                         <DataGrid
                             rows={users}
                             columns={userColumns}

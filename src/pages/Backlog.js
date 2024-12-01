@@ -102,7 +102,7 @@ const BacklogPage = () => {
         {
             field: 'image',
             headerName: 'Game Image',
-            width: 130,
+            flex: 1,
             renderCell: (params) => {
                 return params.row.imageUrl ? (
                     <img
@@ -121,7 +121,7 @@ const BacklogPage = () => {
         {
             field: 'title',
             headerName: 'Title',
-            width: 200,
+            flex: 1,
             renderCell: (params) => (
                 <Button
                     color="primary"
@@ -131,12 +131,12 @@ const BacklogPage = () => {
                 </Button>
             ),
         },
-        { field: 'genres', headerName: 'Genres', width: 150 },
-        { field: 'platforms', headerName: 'Platforms', width: 150 },
+        { field: 'genres', headerName: 'Genres', flex: 1 },
+        { field: 'platforms', headerName: 'Platforms', flex: 1 },
         {
             field: 'status',
             headerName: 'Status',
-            width: 150,
+            flex: 1,
             renderCell: (params) => (
                 <Select
                     value={params.row.status}
@@ -153,7 +153,7 @@ const BacklogPage = () => {
         {
             field: 'rating',
             headerName: 'Rating',
-            width: 150,
+            flex: 1,
             renderCell: (params) => (
                 <Rating
                     name={`rating-${params.row.id}`}
@@ -164,11 +164,11 @@ const BacklogPage = () => {
                 />
             ),
         },
-        { field: 'addedOn', headerName: 'Added On', width: 150 },
+        { field: 'addedOn', headerName: 'Added On', flex: 1 },
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 150,
+            flex: 1,
             renderCell: (params) => (
                 <Button
                     color="error"
@@ -200,7 +200,7 @@ const BacklogPage = () => {
                 </Box>
 
                 {viewMode === 'table' ? (
-                    <Box sx={{ flexGrow: 1, mt: 4, display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ height: 'auto', mt: 4 }}>
                         <DataGrid
                             rows={games}
                             columns={columns}

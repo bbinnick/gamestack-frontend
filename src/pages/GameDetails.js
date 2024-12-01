@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, CardMedia } from '@mui/material';
 import Rating from '@mui/material/Rating';
+import CircularProgress from '@mui/material/CircularProgress';
 import StarIcon from '@mui/icons-material/Star';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
@@ -74,6 +75,12 @@ const GameDetails = () => {
     fetchGameDetails();
   }, [gameId, igdbGameId, user, navigate]);
 
+  const showAlert = (message, severity) => {
+    setAlertMessage(message);
+    setAlertSeverity(severity);
+    setAlertOpen(true);
+  };
+
   const handleAddToBacklog = async () => {
     if (!user) {
       navigate('/log-in');
@@ -90,15 +97,11 @@ const GameDetails = () => {
 
       if (response.status === 200) {
         console.log('Game added to backlog:', gameId || igdbGameId);
-        setAlertMessage('Game added to your backlog successfully');
-        setAlertSeverity('success');
-        setAlertOpen(true);
+        showAlert('Game added to your backlog successfully', 'success');
       }
     } catch (error) {
       if (error.response && error.response.status === 409) {
-        setAlertMessage('Game is already in your backlog');
-        setAlertSeverity('warning');
-        setAlertOpen(true);
+        showAlert('Game is already in your backlog', 'warning');
       } else {
         console.error('Error adding game to backlog:', error);
       }
@@ -133,7 +136,11 @@ const GameDetails = () => {
   };
 
   if (!game) {
-    return <div>Loading...</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   const platforms = game.platforms ? game.platforms.join(', ') : 'Unknown Platform';
@@ -143,6 +150,21 @@ const GameDetails = () => {
 
   return (
     <TemplateFrame>
+      <Snackbar
+        open={alertOpen}
+        autoHideDuration={6000}
+        onClose={() => setAlertOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+        sx={{ mt: 8 }}
+      >
+        <Alert
+          onClose={() => setAlertOpen(false)}
+          severity={alertSeverity}
+          sx={{ width: '100%', bgcolor: alertSeverity === 'success' ? 'darkgreen' : 'inherit' }}
+        >
+          {alertMessage}
+        </Alert>
+      </Snackbar>
       <Container maxWidth='xl'>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
           <CardMedia
@@ -185,11 +207,6 @@ const GameDetails = () => {
             Add to Backlog
           </Button>
         </Box>
-        <Snackbar open={alertOpen} autoHideDuration={6000} onClose={() => setAlertOpen(false)}>
-          <Alert onClose={() => setAlertOpen(false)} severity={alertSeverity} sx={{ width: '100%' }}>
-            {alertMessage}
-          </Alert>
-        </Snackbar>
       </Container>
     </TemplateFrame>
   );

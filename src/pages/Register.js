@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, CssBaseline, FormLabel, FormControl, Link, TextField, Typography, Stack } from '@mui/material';
+import { Box, Button, CssBaseline, FormLabel, FormControl, Link, TextField, Typography, Stack, Snackbar, Alert } from '@mui/material';
 import MuiCard from '@mui/material/Card';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 import { MenuItem, Select } from '@mui/material';
@@ -55,7 +55,14 @@ export default function SignUp() {
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
   const [role, setRole] = useState('USER');
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('error');
   const navigate = useNavigate();
+
+  const handleAlertClose = () => {
+    setAlertOpen(false);
+  };
 
   const validateInputs = () => {
     const email = document.getElementById('email');
@@ -120,11 +127,16 @@ export default function SignUp() {
     } catch (error) {
       if (error.response) {
         console.error('Server responded with an error:', error.response.data);
+        setAlertMessage(error.response.data.message || 'Registration failed.');
       } else if (error.request) {
         console.error('No response received:', error.request);
+        setAlertMessage('No response from server.');
       } else {
         console.error('Error setting up request:', error.message);
+        setAlertMessage('Error setting up request.');
       }
+      setAlertSeverity('error');
+      setAlertOpen(true);
     }
   };
 
@@ -132,6 +144,17 @@ export default function SignUp() {
     <TemplateFrame>
       <ThemeProvider theme={SignUpTheme}>
         <CssBaseline enableColorScheme />
+        <Snackbar
+        open={alertOpen}
+        autoHideDuration={6000}
+        onClose={handleAlertClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ mt: 8 }}
+      >
+        <Alert onClose={handleAlertClose} severity={alertSeverity} sx={{ width: '100%' }}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
         <SignUpContainer direction="column" justifyContent="space-between">
           <Card variant="outlined">
             <Typography
