@@ -52,7 +52,7 @@ export default function Latest({ title, games }) {
       </Typography>
       <Grid2 container spacing={2}>
         {games.map((igdbGame) => (
-          <Grid2 key={igdbGame.id} xs={12} sm={6} md={4} lg={3}>
+          <Grid2 key={igdbGame.id} xs={12} sm={6} md={4}>
             <StyledCard
               variant="outlined"
               onClick={() => handleCardClick(igdbGame.id)}
@@ -65,7 +65,7 @@ export default function Latest({ title, games }) {
                   onError={(e) => { e.target.style.display = 'none'; }}
                   sx={{
                     width: '100%',
-                    height: 200,
+                    height: 'auto',
                     objectFit: 'cover',
                     borderBottom: '1px solid',
                     borderColor: 'divider',

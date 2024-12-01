@@ -20,10 +20,11 @@ const AdminGameManagement = () => {
     const [imageFile, setImageFile] = useState(null);
     const [games, setGames] = useState([]);
     const [users, setUsers] = useState([]);
-    const [selectedUserId, setSelectedUserId] = useState(null);
     const [editingGame, setEditingGame] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogAction, setDialogAction] = useState(null);
+    const [selectedGameIds, setSelectedGameIds] = useState([]);
+    const [selectedUserIds, setSelectedUserIds] = useState([]);
     const { user } = useUser();
     const navigate = useNavigate();
 
@@ -138,34 +139,35 @@ const AdminGameManagement = () => {
             } catch (error) {
                 console.error('Error updating game:', error);
             }
-        } else if (dialogAction.type === 'delete') {
+        } else if (dialogAction === 'deleteSelectedGames') {
             try {
-                await authService.getAxiosInstance().delete(`/games/${dialogAction.gameId}`);
-                console.log('Game deleted:', dialogAction.gameId);
+                await Promise.all(selectedGameIds.map(gameId => authService.getAxiosInstance().delete(`/games/${gameId}`)));
+                console.log('Selected games deleted:', selectedGameIds);
                 fetchGames();
+                setSelectedGameIds([]);
             } catch (error) {
-                console.error('Error deleting game:', error);
+                console.error('Error deleting selected games:', error);
             }
-        } else if (dialogAction === 'deleteUser') {
+        } else if (dialogAction === 'deleteSelectedUsers') {
             try {
-                await authService.getAxiosInstance().delete(`/users/${selectedUserId}`);
-                console.log('User deleted:', selectedUserId);
-                setUsers(prevUsers => prevUsers.filter(user => user.id !== selectedUserId));
+                await Promise.all(selectedUserIds.map(userId => authService.getAxiosInstance().delete(`/users/${userId}`)));
+                console.log('Selected users deleted:', selectedUserIds);
+                setUsers(prevUsers => prevUsers.filter(user => !selectedUserIds.includes(user.id)));
+                setSelectedUserIds([]);
             } catch (error) {
-                console.error('Error deleting user:', error);
+                console.error('Error deleting selected users:', error);
             }
         }
         setDialogOpen(false);
     };
 
-    const handleDeleteGame = (gameId) => {
-        setDialogAction({ type: 'delete', gameId });
+    const handleDeleteSelectedGames = () => {
+        setDialogAction('deleteSelectedGames');
         setDialogOpen(true);
     };
 
-    const handleDeleteUser = (userId) => {
-        setSelectedUserId(userId);
-        setDialogAction('deleteUser');
+    const handleDeleteSelectedUsers = () => {
+        setDialogAction('deleteSelectedUsers');
         setDialogOpen(true);
     };
 
@@ -222,13 +224,6 @@ const AdminGameManagement = () => {
                     >
                         Edit
                     </Button>
-                    <Button
-                        color="error"
-                        variant="contained"
-                        onClick={() => handleDeleteGame(params.row.id)}
-                    >
-                        Delete
-                    </Button>
                 </Box>
             ),
         },
@@ -239,20 +234,7 @@ const AdminGameManagement = () => {
         { field: 'username', headerName: 'Username', flex: 1 },
         { field: 'email', headerName: 'Email', flex: 1 },
         { field: 'role', headerName: 'Role', flex: 1 },
-        {
-            field: 'actions',
-            headerName: '',
-            flex: 1,
-            renderCell: (params) => (
-                <Button
-                    color="error"
-                    variant="contained"
-                    onClick={() => handleDeleteUser(params.row.id)}
-                >
-                    Delete
-                </Button>
-            ),
-        },
+        { field: 'actions', headerName: '', flex: 1, },
     ];
 
     const paginationModel = { page: 0, pageSize: 10 };
@@ -276,10 +258,24 @@ const AdminGameManagement = () => {
                     <Typography variant="h5" gutterBottom>
                         All Games
                     </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                        <Button
+                            color="error"
+                            variant="contained"
+                            onClick={handleDeleteSelectedGames}
+                            disabled={selectedGameIds.length === 0}
+                        >
+                            Delete Selected Games
+                        </Button>
+                    </Box>
                     <Box sx={{ height: 'auto', width: '100%', mt: 4 }}>
                         <DataGrid
                             rows={games}
                             columns={gameColumns}
+                            checkboxSelection
+                            onRowSelectionModelChange={(newSelection) => {
+                                setSelectedGameIds(newSelection);
+                            }}
                             initialState={{ pagination: { paginationModel } }}
                             pageSizeOptions={[10, 15, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
@@ -290,10 +286,24 @@ const AdminGameManagement = () => {
                     <Typography variant="h5" gutterBottom>
                         All Users
                     </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                        <Button
+                            color="error"
+                            variant="contained"
+                            onClick={handleDeleteSelectedUsers}
+                            disabled={selectedUserIds.length === 0}
+                        >
+                            Delete Selected Users
+                        </Button>
+                    </Box>
                     <Box sx={{ height: 'auto', width: '100%', mt: 4 }}>
                         <DataGrid
                             rows={users}
                             columns={userColumns}
+                            checkboxSelection
+                            onRowSelectionModelChange={(newSelection) => {
+                                setSelectedUserIds(newSelection);
+                            }}
                             initialState={{ pagination: { paginationModel } }}
                             pageSizeOptions={[10, 15, 20, { value: users.length, label: 'All' }]}
                             getRowId={(row) => row.id}
@@ -316,7 +326,11 @@ const AdminGameManagement = () => {
                             ? 'Are you sure you want to add this game?'
                             : dialogAction === 'update'
                                 ? 'Are you sure you want to update this game?'
-                                : 'Are you sure you want to delete this game?'}
+                                : dialogAction === 'deleteSelectedGames'
+                                    ? 'Are you sure you want to delete the selected games?'
+                                    : dialogAction === 'deleteSelectedUsers'
+                                        ? 'Are you sure you want to delete the selected users?'
+                                        : 'Are you sure you want to delete this game?'}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>

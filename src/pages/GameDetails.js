@@ -167,7 +167,7 @@ const GameDetails = () => {
         </Alert>
       </Snackbar>
       <Container maxWidth='xl'>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mt: 2 }}>
           <CardMedia
             component="img"
             alt={game.title || game.name || 'Unknown Title'}

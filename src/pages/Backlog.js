@@ -187,6 +187,14 @@ const BacklogPage = () => {
         setViewMode(viewMode === 'table' ? 'cards' : 'table');
     };
 
+    const getStatusColor = (status) => ({
+        'Not Started': 'grey',
+        'In Progress': 'blue',
+        'Completed': 'green',
+        'Replay': 'orange',
+        'Wishlist': 'purple'
+    }[status] || 'grey');
+
     return (
         <TemplateFrame>
             <Container maxWidth='xl' sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -214,7 +222,7 @@ const BacklogPage = () => {
                     <Grid2 container spacing={4} sx={{ mt: 4 }}>
                         {games.map(game => (
                             <Grid2 key={game.id} xs={12} sm={6} md={4}>
-                                <Card sx={{ maxWidth: 345 }} onClick={() => handleDetailNavigation(game.id)}>
+                                <Card sx={{ maxWidth: 345, position: 'relative', cursor: 'pointer' }} onClick={() => handleDetailNavigation(game.id)}>
                                     {game.imageUrl ? (
                                         <CardMedia
                                             component="img"
@@ -222,7 +230,7 @@ const BacklogPage = () => {
                                             image={game.imageUrl}
                                             sx={{
                                                 width: '100%',
-                                                height: 200,
+                                                height: 'auto',
                                                 objectFit: 'cover',
                                             }}
                                         />
@@ -235,16 +243,7 @@ const BacklogPage = () => {
                                         <Typography gutterBottom variant="h5" component="div">
                                             {game.title}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Genres: {game.genres.join(', ')}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Platforms: {game.platforms.join(', ')}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Status: {game.status}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                             Added On: {game.addedOn}
                                         </Typography>
                                         <Rating
@@ -255,6 +254,19 @@ const BacklogPage = () => {
                                             emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
                                         />
                                     </CardContent>
+                                    <Box sx={{
+                                        position: 'absolute',
+                                        bottom: 16,
+                                        right: 16,
+                                        bgcolor: getStatusColor(game.status),
+                                        color: 'white',
+                                        px: 2,
+                                        py: 0.5,
+                                        borderRadius: 1,
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {game.status}
+                                    </Box>
                                 </Card>
                             </Grid2>
                         ))}

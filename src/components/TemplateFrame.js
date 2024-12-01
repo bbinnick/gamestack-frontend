@@ -3,6 +3,7 @@ import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Drawer from '@mui/material/Drawer';
@@ -94,6 +95,9 @@ function TemplateFrame({ children }) {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {user ? (
                 <>
+                  <Typography variant="body2" aria-label="username" sx={{ color: 'text.primary' }}>
+                    Logged in as: {user.username}
+                  </Typography>
                   <IconButton
                     size="small"
                     aria-label="Account"
