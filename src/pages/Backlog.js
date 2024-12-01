@@ -32,6 +32,7 @@ const BacklogPage = () => {
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogAction, setDialogAction] = useState(null);
+    const [selectedGames, setSelectedGames] = useState([]);
     const { user } = useUser();
     const navigate = useNavigate();
 
@@ -56,23 +57,23 @@ const BacklogPage = () => {
         }
     }, [user]);
 
-    // Remove game from backlog
-    const handleDeleteGame = (gameId) => {
-        setDialogAction({ type: 'delete', gameId });
+    // Remove game(s) from backlog
+    const handleRemoveSelectedGames = () => {
+        setDialogAction('deleteSelectedGames');
         setDialogOpen(true);
     };
 
     const handleConfirmAction = async () => {
-        if (dialogAction.type === 'delete') {
+        if (dialogAction === 'deleteSelectedGames') {
             try {
-                await authService.getAxiosInstance().delete(`/games/remove-from-backlog/${dialogAction.gameId}`);
-                console.log('Game removed from backlog:', dialogAction.gameId);
-                setGames(prevGames => prevGames.filter(game => game.id !== dialogAction.gameId));
+                await Promise.all(selectedGames.map(gameId => authService.getAxiosInstance().delete(`/games/remove-from-backlog/${gameId}`)));
+                console.log('Selected games removed from backlog:', selectedGames);
+                setGames(prevGames => prevGames.filter(game => !selectedGames.includes(game.id)));
+                setSelectedGames([]);
             } catch (error) {
-                console.error('Error removing game from backlog:', error);
+                console.error('Error removing selected games from backlog:', error);
             }
         }
-
         setDialogOpen(false);
     };
 
@@ -165,20 +166,6 @@ const BacklogPage = () => {
             ),
         },
         { field: 'addedOn', headerName: 'Added On', flex: 1 },
-        {
-            field: 'actions',
-            headerName: 'Actions',
-            flex: 1,
-            renderCell: (params) => (
-                <Button
-                    color="error"
-                    variant="contained"
-                    onClick={() => handleDeleteGame(params.row.id)}
-                >
-                    Remove
-                </Button>
-            ),
-        },
     ];
 
     const paginationModel = { page: 0, pageSize: 10 };
@@ -209,9 +196,23 @@ const BacklogPage = () => {
 
                 {viewMode === 'table' ? (
                     <Box sx={{ height: 'auto', mt: 4 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                            <Button
+                                color="error"
+                                variant="contained"
+                                onClick={handleRemoveSelectedGames}
+                                disabled={selectedGames.length === 0}
+                            >
+                                Remove Selected Games
+                            </Button>
+                        </Box>
                         <DataGrid
                             rows={games}
                             columns={columns}
+                            checkboxSelection
+                            onRowSelectionModelChange={(newSelection) => {
+                                setSelectedGames(newSelection);
+                            }}
                             initialState={{ pagination: { paginationModel } }}
                             pageSizeOptions={[10, 15, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
@@ -280,7 +281,7 @@ const BacklogPage = () => {
                 aria-describedby="alert-dialog-description"
             >
                 <DialogTitle id="alert-dialog-title">
-                    Confirm Delete
+                    Confirm Removal
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
