@@ -7,35 +7,19 @@ import StarIcon from '@mui/icons-material/Star';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { Gauge } from '@mui/x-charts/Gauge';
+import RatingReviewModal from '../components/RatingReviewModal';
 import TemplateFrame from '../components/TemplateFrame';
 import { useUser } from '../contexts/UserContext';
 import authService from '../services/AuthService';
-
-const labels = {
-  0.5: 'Boring',
-  1: 'Boring+',
-  1.5: 'Poor',
-  2: 'Poor+',
-  2.5: 'Ok',
-  3: 'Ok+',
-  3.5: 'Good',
-  4: 'Good+',
-  4.5: 'Excellent',
-  5: 'Excellent+',
-};
-
-function getLabelText(value) {
-  return `${value} Star${value !== 1 ? 's' : ''}, ${labels[value]}`;
-}
 
 const GameDetails = () => {
   const { gameId, igdbGameId } = useParams();
   const [game, setGame] = useState(null);
   const [rating, setRating] = useState(0);
-  const [hover, setHover] = useState(-1);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('warning');
+  const [ratingModalOpen, setRatingModalOpen] = useState(false);
   const { user } = useUser();
   const navigate = useNavigate();
 
@@ -109,30 +93,29 @@ const GameDetails = () => {
     }
   };
 
-  const handleRatingChange = async (event, newValue) => {
+  const handleRatingReviewSubmit = async (rating, review) => {
     if (!user) {
       navigate('/log-in');
       return;
     }
 
-    setRating(newValue);
+    setRating(rating);
 
     try {
+      let gameIdToUse = gameId;
+
       if (igdbGameId) {
-        const response = await authService.getAxiosInstance().post('/games/add-igdb-game', game);
-        const addedGame = response.data;
-        await authService.getAxiosInstance().post(`/games/${addedGame.id}/rate`, null, {
-          params: { rating: newValue }
-        });
-        console.log('IGDB game rated:', addedGame.id);
-      } else {
-        await authService.getAxiosInstance().post(`/games/${gameId}/rate`, null, {
-          params: { rating: newValue }
-        });
-        console.log('Rating submitted:', newValue);
+        const response = await authService.getAxiosInstance().get(`/games/${igdbGameId}/user-rating`);
+        gameIdToUse = response.data.gameId || (await authService.getAxiosInstance().post('/games/add-igdb-game', game)).data.id;
       }
+
+      await authService.getAxiosInstance().post(`/games/${gameIdToUse}/rate-and-review`, null, {
+        params: { rating, review }
+      });
+      showAlert('Rating and review submitted successfully', 'success');
     } catch (error) {
-      console.error('Error submitting rating:', error);
+      console.error('Error submitting rating and review:', error);
+      showAlert('Error submitting rating and review', 'error');
     }
   };
 
@@ -161,7 +144,14 @@ const GameDetails = () => {
         <Alert
           onClose={() => setAlertOpen(false)}
           severity={alertSeverity}
-          sx={{ width: '100%', bgcolor: alertSeverity === 'success' ? 'darkgreen' : 'inherit' }}
+          sx={{
+            width: '100%',
+            bgcolor: {
+              success: 'darkgreen',
+              error: 'darkred',
+              warning: 'darkorange'
+            }[alertSeverity] || 'inherit'
+          }}
         >
           {alertMessage}
         </Alert>
@@ -205,19 +195,25 @@ const GameDetails = () => {
                 name="hover-feedback"
                 value={rating}
                 precision={0.5}
-                getLabelText={getLabelText}
-                onChange={handleRatingChange}
-                onChangeActive={(event, newHover) => setHover(newHover)}
+                readOnly
                 emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
               />
-              {rating !== null && (
-                <Box sx={{ mt: 1 }}>{labels[hover !== -1 ? hover : rating]}</Box>
-              )}
+              <Button variant="contained" color="primary" onClick={() => setRatingModalOpen(true)} sx={{ mt: 2 }}>
+                Rate and Review
+              </Button>
             </Box>
           </Box>
         </Box>
-      </Container>
-    </TemplateFrame>
+      </Container >
+      <RatingReviewModal
+        open={ratingModalOpen}
+        onClose={() => setRatingModalOpen(false)}
+        onSubmit={handleRatingReviewSubmit}
+        initialRating={rating}
+        initialReview={game.review || ''}
+        message="Rating this game will add it to your backlog if it isn't already there."
+      />
+    </TemplateFrame >
   );
 };
 

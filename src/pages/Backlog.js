@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import Rating from '@mui/material/Rating';
 import StarIcon from '@mui/icons-material/Star';
+import RatingReviewModal from '../components/RatingReviewModal';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import TemplateFrame from '../components/TemplateFrame';
 import { useNavigate } from 'react-router-dom';
@@ -32,6 +33,8 @@ const BacklogPage = () => {
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogAction, setDialogAction] = useState(null);
+    const [ratingModalOpen, setRatingModalOpen] = useState(false);
+    const [currentGame, setCurrentGame] = useState(null);
     const [selectedGames, setSelectedGames] = useState([]);
     const { user } = useUser();
     const navigate = useNavigate();
@@ -44,7 +47,14 @@ const BacklogPage = () => {
                 const gamesData = response.data.map(game => {
                     const userGame = game.userGames.find(ug => ug.userId === user.user_id) || {};
                     const imageUrl = game.igdbGameId ? game.imageUrl : `http://localhost:8080/uploads/${game.imageUrl}`;
-                    return { ...game, imageUrl, status: userGame.status, addedOn: userGame.addedOn, rating: userGame.rating || 0 };
+                    return {
+                        ...game,
+                        imageUrl,
+                        status: userGame.status,
+                        addedOn: userGame.addedOn,
+                        rating: userGame.rating || 0,
+                        review: userGame.review || ''
+                    };
                 });
                 setGames(gamesData);
             } catch (error) {
@@ -56,6 +66,22 @@ const BacklogPage = () => {
             fetchBacklog();
         }
     }, [user]);
+
+    const handleRatingReview = (game) => {
+        setCurrentGame(game);
+        setRatingModalOpen(true);
+    };
+
+    const handleRatingReviewSubmit = async (rating, review) => {
+        try {
+            await authService.getAxiosInstance().post(`/games/${currentGame.id}/rate-and-review`, null, {
+                params: { rating, review }
+            });
+            setGames(prevGames => prevGames.map(game => game.id === currentGame.id ? { ...game, rating, review } : game));
+        } catch (error) {
+            console.error('Error submitting rating and review:', error);
+        }
+    };
 
     // Remove game(s) from backlog
     const handleRemoveSelectedGames = () => {
@@ -156,19 +182,19 @@ const BacklogPage = () => {
             headerName: 'Rating',
             flex: 1,
             renderCell: (params) => (
-                <Rating
-                    name={`rating-${params.row.id}`}
-                    value={params.row.rating}
-                    precision={0.5}
-                    readOnly
-                    emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
-                />
+                <Button onClick={() => handleRatingReview(params.row)}>
+                    <Rating
+                        name={`rating-${params.row.id}`}
+                        value={params.row.rating}
+                        precision={0.5}
+                        readOnly
+                        emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                    />
+                </Button>
             ),
         },
         { field: 'addedOn', headerName: 'Added On', flex: 1 },
     ];
-
-    const paginationModel = { page: 0, pageSize: 10 };
 
     const toggleViewMode = () => {
         setViewMode(viewMode === 'table' ? 'cards' : 'table');
@@ -213,10 +239,10 @@ const BacklogPage = () => {
                             onRowSelectionModelChange={(newSelection) => {
                                 setSelectedGames(newSelection);
                             }}
-                            initialState={{ pagination: { paginationModel } }}
+                            initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
                             pageSizeOptions={[10, 15, 20, { value: games.length, label: 'All' }]}
                             getRowId={(row) => row.id}
-                            disableSelectionOnClick
+                            disableRowSelectionOnClick
                         />
                     </Box>
                 ) : (
@@ -273,6 +299,13 @@ const BacklogPage = () => {
                         ))}
                     </Grid2>
                 )}
+                <RatingReviewModal
+                    open={ratingModalOpen}
+                    onClose={() => setRatingModalOpen(false)}
+                    onSubmit={handleRatingReviewSubmit}
+                    initialRating={currentGame?.rating || 0}
+                    initialReview={currentGame?.review || ''}
+                />
             </Container>
             <Dialog
                 open={dialogOpen}
