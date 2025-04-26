@@ -11,6 +11,7 @@ Built with React, Material UI (MUI), Axios, and React Router.
 - JWT authentication and token handling
 - View and manage your personal game backlog
 - Add games with status and personal rating
+- IGDB API integration to search and add games.
 - Dynamic light/dark theme switching
 - Admin dashboard for managing master game list (Admin users only)
 
@@ -21,6 +22,7 @@ Built with React, Material UI (MUI), Axios, and React Router.
 - Axios
 - React Router DOM
 - Context API for global auth and theme management
+- IGDB API (via Twitch authentication)
 
 ---
 
@@ -53,11 +55,24 @@ or
 
 ### 3. Configure Environment Variables
 
-#### Create a `.env` file in the root of the project:
+#### Ensure your environment variables are properly set in the backend:
 
     REACT_APP_API_URL=http://localhost:8080/api
+    
+    # IGDB API
+    REACT_APP_IGDB_CLIENT_ID=your_twitch_client_id
+    REACT_APP_IGDB_CLIENT_SECRET=your_twitch_client_secret
 
-Make sure this matches the backend server URL!
+#### ⚡ **Important**:
+
+To access the IGDB API, you must create a Twitch Developer Application to get your CLIENT_ID and CLIENT_SECRET:
+
+- [Register a Twitch application here](https://dev.twitch.tv/docs/authentication/register-app/)
+- Set "OAuth Redirect URL" to http://localhost
+- Get your Client ID and generate a Client Secret
+- These credentials will be used to fetch an OAuth token automatically in the app.
+
+---
 
 ### 4. Running the Application
 
@@ -75,14 +90,36 @@ The app will run at:
 
 ---
 
+### 🎮 IGDB API Integration Details
+
+- IGDB is used to search for real-world games based on title.
+- When adding a new game, users can search by name and select a game from IGDB's live results.
+- Pulled metadata includes:
+
+    - Cover image
+    - Title
+    - Release date
+    - Platforms
+    - Genre
+    - Summary/description
+    - IGDB game rating
+
+- Selected games are saved into the user's backlog with custom status and rating.
+
+The app handles:
+
+- Token Authentication (fetches an access token using the Twitch credentials)
+- Rate limiting management to avoid unnecessary token refreshes
+- Secure usage of the IGDB API with client credentials kept in environment variables
+
+---
+
 ### 🔥 Important Notes
 - Ensure the backend is running first to interact with APIs.
-
 - JWT tokens are stored in localStorage for session management.
-
 - Only users with the ADMIN role will be able to access admin routes.
-
 - The project uses Material UI's ThemeProvider for dynamic light/dark mode.
+- _This application uses the [IGDB API](https://www.igdb.com/) but is not endorsed or certified by IGDB or Twitch_.
 
 ----------------------
 
