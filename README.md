@@ -1,10 +1,95 @@
+---
+
+# 📂 `GameStack-Frontend` — README.md
+
+This is the React frontend for the **GameStack** application — a personal game backlog manager.  
+Built with React, Material UI (MUI), Axios, and React Router.
+
+## 📋 Features
+
+- User registration and login
+- JWT authentication and token handling
+- View and manage your personal game backlog
+- Add games with status and personal rating
+- Dynamic light/dark theme switching
+- Admin dashboard for managing master game list (Admin users only)
+
+## 🛠 Technologies Used
+
+- React 18+
+- Material UI (MUI)
+- Axios
+- React Router DOM
+- Context API for global auth and theme management
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+
+Make sure you have the following installed:
+
+- [Node.js](https://nodejs.org/) (v18+ recommended)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+
+---
+
+### 2. Setup Instructions
+
+#### Clone the repository
+
+    git clone https://github.com/your-username/GameStack-Frontend.git
+    cd GameStack-Frontend
+
+#### Install dependencies
+    npm install
+
+or
+
+    yarn install
+
+---
+
+### 3. Configure Environment Variables
+
+#### Create a `.env` file in the root of the project:
+
+    REACT_APP_API_URL=http://localhost:8080/api
+
+Make sure this matches the backend server URL!
+
+### 4. Running the Application
+
+#### Start the development server:
+
+    npm start
+
+or
+
+    yarn start
+
+The app will run at:
+
+    http://localhost:3000/
+
+---
+
+### 🔥 Important Notes
+- Ensure the backend is running first to interact with APIs.
+
+- JWT tokens are stored in localStorage for session management.
+
+- Only users with the ADMIN role will be able to access admin routes.
+
+- The project uses Material UI's ThemeProvider for dynamic light/dark mode.
+
+----------------------
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
-## Available Scripts
-
-In the project directory, you can run:
 
 ### `npm start`
 
@@ -29,42 +114,6 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
 ### Deployment
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
