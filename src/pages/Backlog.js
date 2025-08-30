@@ -36,6 +36,9 @@ const BacklogPage = () => {
     const [ratingModalOpen, setRatingModalOpen] = useState(false);
     const [currentGame, setCurrentGame] = useState(null);
     const [selectedGames, setSelectedGames] = useState([]);
+    const [modalInitialRating, setModalInitialRating] = useState(0);
+    const [modalInitialReview, setModalInitialReview] = useState('');
+
     const { user } = useUser();
     const navigate = useNavigate();
 
@@ -45,7 +48,10 @@ const BacklogPage = () => {
             try {
                 const response = await authService.getAxiosInstance().get('/games/backlog');
                 const gamesData = response.data.map(game => {
-                    const userGame = game.userGames.find(ug => ug.userId === user.user_id) || {};
+                    // Match user id flexibly: backend/user context might provide id under different keys/types
+                    const userGame = game.userGames.find(ug =>
+                        ug && (ug.userId === user.user_id || ug.userId === user.id || ug.userId === user.userId)
+                    ) || {};
                     const imageUrl = game.igdbGameId ? game.imageUrl : `http://localhost:8080/uploads/${game.imageUrl}`;
                     return {
                         ...game,
@@ -67,8 +73,23 @@ const BacklogPage = () => {
         }
     }, [user]);
 
-    const handleRatingReview = (game) => {
+    const handleRatingReview = async (game) => {
         setCurrentGame(game);
+        // Fetch freshest rating+review for this user/game from backend so it works after page reload
+        try {
+            const resp = await authService.getAxiosInstance().get(`/games/${game.id}/user-rating-review`);
+            if (resp.data && typeof resp.data.rating !== 'undefined') {
+                setModalInitialRating(resp.data.rating || 0);
+                setModalInitialReview(resp.data.review || '');
+            } else {
+                setModalInitialRating(game?.rating || 0);
+                setModalInitialReview(game?.review || '');
+            }
+        } catch (err) {
+            console.error('Error fetching user rating/review for modal:', err);
+            setModalInitialRating(game?.rating || 0);
+            setModalInitialReview(game?.review || '');
+        }
         setRatingModalOpen(true);
     };
 
@@ -78,6 +99,10 @@ const BacklogPage = () => {
                 params: { rating, review }
             });
             setGames(prevGames => prevGames.map(game => game.id === currentGame.id ? { ...game, rating, review } : game));
+            // keep modal initial values in sync so re-opening reflects what was saved
+            setModalInitialRating(rating);
+            setModalInitialReview(review || '');
+
         } catch (error) {
             console.error('Error submitting rating and review:', error);
         }
@@ -303,8 +328,8 @@ const BacklogPage = () => {
                     open={ratingModalOpen}
                     onClose={() => setRatingModalOpen(false)}
                     onSubmit={handleRatingReviewSubmit}
-                    initialRating={currentGame?.rating || 0}
-                    initialReview={currentGame?.review || ''}
+                    initialRating={modalInitialRating}
+                    initialReview={modalInitialReview}
                 />
             </Container>
             <Dialog
