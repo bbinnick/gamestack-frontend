@@ -33,9 +33,14 @@ const BacklogPage = () => {
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogAction, setDialogAction] = useState(null);
-    const [ratingModalOpen, setRatingModalOpen] = useState(false);
-    const [currentGame, setCurrentGame] = useState(null);
+    const [ratingModal, setRatingModal] = useState({
+        open: false,
+        game: null,
+        rating: 0,
+        review: ''
+    });
     const [selectedGames, setSelectedGames] = useState([]);
+
     const { user } = useUser();
     const navigate = useNavigate();
 
@@ -45,7 +50,10 @@ const BacklogPage = () => {
             try {
                 const response = await authService.getAxiosInstance().get('/games/backlog');
                 const gamesData = response.data.map(game => {
-                    const userGame = game.userGames.find(ug => ug.userId === user.user_id) || {};
+                    // find userGame robustly
+                    const userGame = (game.userGames || []).find(ug =>
+                        ug && (ug.userId === user?.user_id || ug.userId === user?.id || ug.userId === user?.userId)
+                    ) || {};
                     const imageUrl = game.igdbGameId ? game.imageUrl : `http://localhost:8080/uploads/${game.imageUrl}`;
                     return {
                         ...game,
@@ -67,17 +75,38 @@ const BacklogPage = () => {
         }
     }, [user]);
 
-    const handleRatingReview = (game) => {
-        setCurrentGame(game);
-        setRatingModalOpen(true);
+    // helper to fetch persisted rating+review
+    const fetchUserRatingReview = async (gameId) => {
+        try {
+            const resp = await authService.getAxiosInstance().get(`/games/${gameId}/user-rating-review`);
+            if (resp?.data && typeof resp.data.rating !== 'undefined') {
+                return { rating: resp.data.rating || 0, review: resp.data.review || '' };
+            }
+        } catch (e) {
+            // ignore - we'll fallback to game values
+            console.debug('no persisted rating/review', e);
+        }
+        return null;
+    };
+
+    const handleRatingReview = async (game) => {
+        const persisted = await fetchUserRatingReview(game.id);
+        setRatingModal({
+            open: true,
+            game,
+            rating: persisted ? persisted.rating : (game.rating || 0),
+            review: persisted ? persisted.review : (game.review || '')
+        });
     };
 
     const handleRatingReviewSubmit = async (rating, review) => {
+        if (!ratingModal.game) return;
         try {
-            await authService.getAxiosInstance().post(`/games/${currentGame.id}/rate-and-review`, null, {
+            await authService.getAxiosInstance().post(`/games/${ratingModal.game.id}/rate-and-review`, null, {
                 params: { rating, review }
             });
-            setGames(prevGames => prevGames.map(game => game.id === currentGame.id ? { ...game, rating, review } : game));
+            setGames(prev => prev.map(g => g.id === ratingModal.game.id ? { ...g, rating, review } : g));
+            setRatingModal(prev => ({ ...prev, rating, review, open: false }));
         } catch (error) {
             console.error('Error submitting rating and review:', error);
         }
@@ -300,11 +329,11 @@ const BacklogPage = () => {
                     </Grid2>
                 )}
                 <RatingReviewModal
-                    open={ratingModalOpen}
-                    onClose={() => setRatingModalOpen(false)}
+                    open={ratingModal.open}
+                    onClose={() => setRatingModal(prev => ({ ...prev, open: false }))}
                     onSubmit={handleRatingReviewSubmit}
-                    initialRating={currentGame?.rating || 0}
-                    initialReview={currentGame?.review || ''}
+                    initialRating={ratingModal.rating}
+                    initialReview={ratingModal.review}
                 />
             </Container>
             <Dialog

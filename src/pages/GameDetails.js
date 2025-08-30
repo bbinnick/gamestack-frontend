@@ -16,6 +16,7 @@ const GameDetails = () => {
   const { gameId, igdbGameId } = useParams();
   const [game, setGame] = useState(null);
   const [rating, setRating] = useState(0);
+  const [userReview, setUserReview] = useState('');
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('warning');
@@ -24,6 +25,19 @@ const GameDetails = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+
+    const resolveInternalGameId = async (igdbId) => {
+      try {
+        const resp = await authService.getAxiosInstance().get(`/games/igdb/${igdbId}`);
+        return resp.data && resp.data.id ? resp.data.id : null;
+      } catch (err) {
+        if (err.response && err.response.status === 404) return null;
+        console.error('Error resolving internal game id:', err);
+        return null;
+      }
+    };
+
+
     const fetchGameDetails = async () => {
       try {
         let response;
@@ -45,11 +59,28 @@ const GameDetails = () => {
 
     const fetchUserRating = async () => {
       try {
-        const id = igdbGameId || gameId;
-        const response = await authService.getAxiosInstance().get(`/games/${id}/user-rating`);
-        setRating(response.data.rating || 0);
+        let idToUse = gameId;
+        if (igdbGameId) {
+          const internalId = await resolveInternalGameId(igdbGameId);
+          if (!internalId) {
+            // No internal record yet -> no user rating
+            setRating(0);
+            setUserReview('');
+            return;
+          }
+          idToUse = internalId;
+        }
+        const response = await authService.getAxiosInstance().get(`/games/${idToUse}/user-rating-review`);
+        // response.data may contain { rating, review } or { message: ... }
+        if (response.data && typeof response.data.rating !== 'undefined') {
+          setRating(response.data.rating || 0);
+          setUserReview(response.data.review || '');
+        } else {
+          setRating(0);
+          setUserReview('');
+        }
       } catch (error) {
-        console.error('Error fetching user rating:', error);
+        console.error('Error fetching user rating/review:', error);
       }
     };
 
@@ -105,17 +136,50 @@ const GameDetails = () => {
       let gameIdToUse = gameId;
 
       if (igdbGameId) {
-        const response = await authService.getAxiosInstance().get(`/games/${igdbGameId}/user-rating`);
-        gameIdToUse = response.data.gameId || (await authService.getAxiosInstance().post('/games/add-igdb-game', game)).data.id;
+        // Resolve internal game id first; if it doesn't exist create it
+        const resolveInternalGameId = async (igdbId) => {
+          try {
+            const resp = await authService.getAxiosInstance().get(`/games/igdb/${igdbId}`);
+            return resp.data && resp.data.id ? resp.data.id : null;
+          } catch (err) {
+            if (err.response && err.response.status === 404) return null;
+            throw err;
+          }
+        };
+
+        let internalId = await resolveInternalGameId(igdbGameId);
+        if (!internalId) {
+          // try to add the IGDB game (returns created GameDTO with id)
+          try {
+            const addResp = await authService.getAxiosInstance().post('/games/add-igdb-game', game);
+            internalId = addResp.data.id;
+          } catch (addErr) {
+            // If add returned 409 (already exists), resolve again
+            if (addErr.response && addErr.response.status === 409) {
+              const found = await resolveInternalGameId(igdbGameId);
+              internalId = found;
+            } else {
+              throw addErr;
+            }
+          }
+        }
+        if (!internalId) throw new Error('Failed to resolve or create internal game id for IGDB game');
+        gameIdToUse = internalId;
       }
 
       await authService.getAxiosInstance().post(`/games/${gameIdToUse}/rate-and-review`, null, {
         params: { rating, review }
       });
+      setUserReview(review || '');
       showAlert('Rating and review submitted successfully', 'success');
     } catch (error) {
       console.error('Error submitting rating and review:', error);
-      showAlert('Error submitting rating and review', 'error');
+      // handle 409 specially if you want to surface a clearer message
+      if (error.response && error.response.status === 409) {
+        showAlert('Game is already in your backlog or conflict occurred', 'warning');
+      } else {
+        showAlert('Error submitting rating and review', 'error');
+      }
     }
   };
 
@@ -210,7 +274,7 @@ const GameDetails = () => {
         onClose={() => setRatingModalOpen(false)}
         onSubmit={handleRatingReviewSubmit}
         initialRating={rating}
-        initialReview={game.review || ''}
+        initialReview={userReview || game.review || ''}
         message="Rating this game will add it to your backlog if it isn't already there."
       />
     </TemplateFrame >
